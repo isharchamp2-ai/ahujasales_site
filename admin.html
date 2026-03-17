@@ -1,38 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ahuja Sales India | Admin Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="admin.css">
 </head>
+
 <body>
 
     <!-- LOGIN SCREEN -->
     <div id="loginScreen" class="auth-wrapper">
         <div class="glass-card auth-card">
             <div class="auth-logo">
-                <img src="https://test.ahujasalesindia.com/Images/logo.png" alt="Ahuja Sales India" onerror="this.src=''">
+                <img src="https://test.ahujasalesindia.com/Images/logo.png" alt="Ahuja Sales India"
+                    onerror="this.src=''">
                 <h2>Admin Portal</h2>
             </div>
             <p class="auth-subtitle">Secure access for owners only.</p>
-            
+
             <form id="loginForm" onsubmit="handleLogin(event)">
                 <div class="input-group">
                     <i class="fas fa-lock"></i>
                     <input type="password" id="adminPassword" placeholder="Enter Admin Password" required>
                 </div>
                 <p id="loginError" class="error-msg" style="display:none;"></p>
-                <button type="submit" class="btn-glow" id="loginBtn">Authenticate <i class="fas fa-arrow-right"></i></button>
+                <button type="submit" class="btn-glow" id="loginBtn">Authenticate <i
+                        class="fas fa-arrow-right"></i></button>
             </form>
         </div>
     </div>
 
     <!-- DASHBOARD SCREEN -->
     <div id="dashboardScreen" class="dashboard-wrapper" style="display:none;">
-        
+
         <aside class="sidebar glass-panel">
             <div class="sidebar-header">
                 <img src="https://test.ahujasalesindia.com/Images/logo.png" alt="Logo">
@@ -58,11 +63,12 @@
                 <div class="glass-card form-card">
                     <div class="card-header">
                         <h3><i class="fas fa-plus-circle"></i> Add New Product to Website</h3>
-                        <p>Fill out the details below. Once safely added, it will automatically appear live on ahujasalesindia.com.</p>
+                        <p>Fill out the details below. Once safely added, it will automatically appear live on
+                            ahujasalesindia.com.</p>
                     </div>
 
                     <form id="addProductForm" onsubmit="handleAddProduct(event)">
-                        
+
                         <div class="form-grid">
                             <div class="input-group-col">
                                 <label>Category *</label>
@@ -85,7 +91,7 @@
                                 <label>Sub-Category / Model *</label>
                                 <input type="text" id="pModel" placeholder="e.g. Globe Valve FLANGED" required>
                             </div>
-                            
+
                             <div class="input-group-col">
                                 <label>Size</label>
                                 <input type="text" id="pSize" placeholder="e.g. 1/2' or 15mm">
@@ -99,7 +105,8 @@
 
                         <div class="input-group-col">
                             <label>Product Image Link</label>
-                            <input type="url" id="pImg" placeholder="https://test.ahujasalesindia.com/images/products/...jpg">
+                            <input type="url" id="pImg"
+                                placeholder="https://test.ahujasalesindia.com/images/products/...jpg">
                             <small>Leave empty to use the default company logo placeholder.</small>
                         </div>
 
@@ -107,7 +114,7 @@
                             <label>Description *</label>
                             <textarea id="pDesc" rows="4" placeholder="Full product description..." required></textarea>
                         </div>
-                        
+
                         <div class="input-group-col">
                             <label>Key Specifications (Optional)</label>
                             <textarea id="pSpec" rows="3" placeholder="Port Size: 1/2... Body: Cast Iron..."></textarea>
@@ -131,143 +138,145 @@
         <p id="toastMsg">Action successful!</p>
     </div>
 
-<script>
-    // Simple state
-    let token = localStorage.getItem('asi_admin_token') || null;
+    <script>
+        // Simple state
+        let token = localStorage.getItem('asi_admin_token') || null;
 
-    // Check token on load
-    if (token) {
-        showDashboard();
-    }
-
-    // --- Toast UI ---
-    function showToast(msg, type='success') {
-        const toast = document.getElementById('toast');
-        document.getElementById('toastMsg').textContent = msg;
-        const icon = document.getElementById('toastIcon');
-        
-        if(type === 'error'){
-            toast.style.background = '#ef4444';
-            icon.className = 'fas fa-exclamation-circle';
-        } else {
-            toast.style.background = '#10b981';
-            icon.className = 'fas fa-check-circle';
+        // Check token on load
+        if (token) {
+            showDashboard();
         }
-        
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 3500);
-    }
 
-    // --- Login ---
-    async function handleLogin(e) {
-        e.preventDefault();
-        const pwd = document.getElementById('adminPassword').value;
-        const btn = document.getElementById('loginBtn');
-        const err = document.getElementById('loginError');
-        
-        btn.disabled = true;
-        btn.innerHTML = 'Verifying... <i class="fas fa-circle-notch fa-spin"></i>';
-        err.style.display = 'none';
+        // --- Toast UI ---
+        function showToast(msg, type = 'success') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = msg;
+            const icon = document.getElementById('toastIcon');
 
-        try {
-            const res = await fetch('https://spotty-jobs-guess.loca.lt/api/admin/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: pwd })
-            });
-            const data = await res.json();
-            
-            if (data.success) {
-                token = data.token;
-                localStorage.setItem('asi_admin_token', token);
-                showDashboard();
-                showToast('Welcome back, Sandeep!');
+            if (type === 'error') {
+                toast.style.background = '#ef4444';
+                icon.className = 'fas fa-exclamation-circle';
             } else {
-                err.textContent = data.message || 'Invalid Password';
+                toast.style.background = '#10b981';
+                icon.className = 'fas fa-check-circle';
+            }
+
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3500);
+        }
+
+        // --- Login ---
+        async function handleLogin(e) {
+            e.preventDefault();
+            const pwd = document.getElementById('adminPassword').value;
+            const btn = document.getElementById('loginBtn');
+            const err = document.getElementById('loginError');
+
+            btn.disabled = true;
+            btn.innerHTML = 'Verifying... <i class="fas fa-circle-notch fa-spin"></i>';
+            err.style.display = 'none';
+
+            try {
+                const res = await fetch('https://spotty-jobs-guess.loca.lt/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
+                    body: JSON.stringify({ password: pwd })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    token = data.token;
+                    localStorage.setItem('asi_admin_token', token);
+                    showDashboard();
+                    showToast('Welcome back, Sandeep!');
+                } else {
+                    err.textContent = data.message || 'Invalid Password';
+                    err.style.display = 'block';
+                }
+            } catch (error) {
+                err.textContent = 'Server connection failed. Is the backend running?';
                 err.style.display = 'block';
             }
-        } catch (error) {
-            err.textContent = 'Server connection failed. Is the backend running?';
-            err.style.display = 'block';
+
+            btn.disabled = false;
+            btn.innerHTML = 'Authenticate <i class="fas fa-arrow-right"></i>';
         }
 
-        btn.disabled = false;
-        btn.innerHTML = 'Authenticate <i class="fas fa-arrow-right"></i>';
-    }
+        // --- Add Product ---
+        async function handleAddProduct(e) {
+            e.preventDefault();
 
-    // --- Add Product ---
-    async function handleAddProduct(e) {
-        e.preventDefault();
-        
-        const payload = {
-            Category: document.getElementById('pCat').value,
-            Model: document.getElementById('pModel').value,
-            Size: document.getElementById('pSize').value,
-            SellingRate: parseFloat(document.getElementById('pPrice').value),
-            PicName: document.getElementById('pImg').value,
-            Description: document.getElementById('pDesc').value,
-            Specification: document.getElementById('pSpec').value
-        };
+            const payload = {
+                Category: document.getElementById('pCat').value,
+                Model: document.getElementById('pModel').value,
+                Size: document.getElementById('pSize').value,
+                SellingRate: parseFloat(document.getElementById('pPrice').value),
+                PicName: document.getElementById('pImg').value,
+                Description: document.getElementById('pDesc').value,
+                Specification: document.getElementById('pSpec').value
+            };
 
-        const btn = document.getElementById('submitProdBtn');
-        const status = document.getElementById('formStatus');
-        
-        btn.disabled = true;
-        btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publishing...';
-        status.textContent = 'Saving to database and regenerating website script...';
-        status.className = 'status-msg text-accent';
+            const btn = document.getElementById('submitProdBtn');
+            const status = document.getElementById('formStatus');
 
-        try {
-            const res = await fetch('https://spotty-jobs-guess.loca.lt/api/admin/products', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
-            
-            const data = await res.json();
-            
-            if (data.success) {
-                showToast('Product published live successfully!');
-                document.getElementById('addProductForm').reset();
-                status.textContent = 'âœ… Product published! It is now visible on the website.';
-                status.className = 'status-msg text-success';
-            } else {
-                if(res.status === 401 || res.status === 403) {
-                    logout();
-                    alert('Session expired. Please strictly login again.');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Publishing...';
+            status.textContent = 'Saving to database and regenerating website script...';
+            status.className = 'status-msg text-accent';
+
+            try {
+                const res = await fetch('https://spotty-jobs-guess.loca.lt/api/admin/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'bypass-tunnel-reminder': 'true',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    showToast('Product published live successfully!');
+                    document.getElementById('addProductForm').reset();
+                    status.textContent = 'âœ… Product published! It is now visible on the website.';
+                    status.className = 'status-msg text-success';
+                } else {
+                    if (res.status === 401 || res.status === 403) {
+                        logout();
+                        alert('Session expired. Please strictly login again.');
+                    }
+                    status.textContent = 'âŒ ' + (data.message || 'Error saving product.');
+                    status.className = 'status-msg text-error';
                 }
-                status.textContent = 'âŒ ' + (data.message || 'Error saving product.');
+            } catch (error) {
+                status.textContent = 'âŒ Server error. Could not save product.';
                 status.className = 'status-msg text-error';
+                console.error(error);
             }
-        } catch (error) {
-            status.textContent = 'âŒ Server error. Could not save product.';
-            status.className = 'status-msg text-error';
-            console.error(error);
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Publish Product Live';
+
+            setTimeout(() => {
+                if (status.textContent.includes('âœ…')) status.textContent = '';
+            }, 5000);
         }
 
-        btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Publish Product Live';
-        
-        setTimeout(() => {
-            if(status.textContent.includes('âœ…')) status.textContent = '';
-        }, 5000);
-    }
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'flex';
+        }
 
-    function showDashboard() {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('dashboardScreen').style.display = 'flex';
-    }
-
-    function logout() {
-        token = null;
-        localStorage.removeItem('asi_admin_token');
-        document.getElementById('loginScreen').style.display = 'flex';
-        document.getElementById('dashboardScreen').style.display = 'none';
-        document.getElementById('adminPassword').value = '';
-    }
-</script>
+        function logout() {
+            token = null;
+            localStorage.removeItem('asi_admin_token');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+    </script>
 </body>
+
 </html>

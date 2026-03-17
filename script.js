@@ -49560,7 +49560,7 @@ function sendOTP() {
     document.getElementById('cd_otp').value = '';
     fetch('https://spotty-jobs-guess.loca.lt/api/send-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
         body: JSON.stringify({ mobile: cleaned })
     })
     .then(function(r) { return r.json(); })
@@ -49609,7 +49609,7 @@ function verifyOTP() {
     verifyBtn.textContent = 'Verifying\u2026';
     fetch('https://spotty-jobs-guess.loca.lt/api/verify-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
         body: JSON.stringify({ mobile: mobile, otp: entered })
     })
     .then(function(r) { return r.json(); })
