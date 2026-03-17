@@ -49558,7 +49558,7 @@ function sendOTP() {
     sendBtn.textContent = 'Sending\u2026';
     document.getElementById('otpStatusMsg').textContent = '';
     document.getElementById('cd_otp').value = '';
-    fetch('/api/send-otp', {
+    fetch('https://spotty-jobs-guess.loca.lt/api/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile: cleaned })
@@ -49607,7 +49607,7 @@ function verifyOTP() {
     var verifyBtn = document.getElementById('verifyOtpBtn');
     verifyBtn.disabled = true;
     verifyBtn.textContent = 'Verifying\u2026';
-    fetch('/api/verify-otp', {
+    fetch('https://spotty-jobs-guess.loca.lt/api/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mobile: mobile, otp: entered })
