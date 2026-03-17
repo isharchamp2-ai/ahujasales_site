@@ -41,7 +41,7 @@
 
 <!-- ===== BUY NOW MODAL ===== -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
-    <div class="modal" id="buyModal" onclick="event.stopPropagation()">
+    <div class="modal modal-buy-now" id="buyModal" onclick="event.stopPropagation()">
         <button class="modal-close" onclick="closeModal()"><i class="fas fa-times"></i></button>
         <div class="modal-prod-img">
             <img id="modalProductImg" src="" alt="" style="width:100%;height:100%;object-fit:contain;padding:8px">
@@ -57,13 +57,86 @@
             </div>
         </div>
         <div class="modal-actions">
-            <button class="btn btn-primary btn-block" onclick="confirmBuyNow()">
+            <button class="btn btn-primary btn-block" onclick="openCustomerDetails('buynow')">
                 <i class="fas fa-bolt"></i> Confirm Order / Enquire
             </button>
             <button class="btn btn-outline btn-block" onclick="addModalItemToCart()">
                 <i class="fas fa-cart-plus"></i> Add to Cart Instead
             </button>
         </div>
+        
+        <!-- ===== RELATED PRODUCTS ===== -->
+        <div id="relatedProductsContainer" style="display:none; margin-top: 25px; border-top: 1px solid var(--border); padding-top: 15px;">
+            <h3 style="font-size:0.95rem; margin-bottom: 12px; color: var(--text-muted);">Related Products</h3>
+            <div id="relatedProductsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <!-- Filled by JS -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== CUSTOMER DETAILS MODAL ===== -->
+<div class="modal-overlay" id="customerDetailsOverlay" onclick="closeCustomerDetails()">
+    <div class="modal modal-customer-details" id="customerDetailsModal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeCustomerDetails()"><i class="fas fa-times"></i></button>
+        <div class="modal-icon"><i class="fas fa-user-tie"></i></div>
+        <h2>Your Details</h2>
+        <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:20px">Please fill in your details to complete the order / enquiry.</p>
+
+        <form id="customerDetailsForm" onsubmit="submitCustomerDetails(event)">
+            <div class="cd-form-group">
+                <label>Full Name <span class="req">*</span></label>
+                <input type="text" id="cd_name" placeholder="Enter your full name" required>
+            </div>
+            <div class="cd-form-group">
+                <label>Company Name</label>
+                <input type="text" id="cd_company" placeholder="Your company / firm name (optional)">
+            </div>
+            <div class="cd-form-group">
+                <label>Email Address</label>
+                <input type="email" id="cd_email" placeholder="email@example.com">
+            </div>
+            <div class="cd-form-group">
+                <label>GST Number</label>
+                <input type="text" id="cd_gst" placeholder="e.g. 07AEFPA7972J1ZA" maxlength="15" style="text-transform:uppercase">
+            </div>
+            <div class="cd-form-group">
+                <label>Shipping Address <span class="req">*</span></label>
+                <textarea id="cd_address" rows="2" placeholder="Street, City, State, PIN Code" required></textarea>
+            </div>
+
+            <!-- Mobile OTP Section -->
+            <div class="cd-form-group">
+                <label>Mobile Number <span class="req">*</span></label>
+                <div class="otp-input-row">
+                    <input type="tel" id="cd_mobile" placeholder="+91 XXXXXXXXXX" maxlength="13" required>
+                    <button type="button" class="btn-send-otp" id="sendOtpBtn" onclick="sendOTP()">Send OTP</button>
+                </div>
+            </div>
+            <div class="otp-verify-row" id="otpVerifyRow" style="display:none">
+                <div class="cd-form-group" style="margin-bottom:0">
+                    <label>Enter OTP <span class="req">*</span></label>
+                    <div class="otp-verify-inputs">
+                        <input type="text" id="cd_otp" placeholder="Enter 6-digit OTP" maxlength="6" inputmode="numeric"
+                               style="letter-spacing:6px;font-size:1.1rem;font-weight:700;text-align:center">
+                        <button type="button" class="btn-verify-otp" id="verifyOtpBtn" onclick="verifyOTP()">Verify</button>
+                    </div>
+                    <p id="otpStatusMsg" style="font-size:.8rem;margin-top:6px;"></p>
+                </div>
+            </div>
+            <div class="otp-verified-badge" id="otpVerifiedBadge" style="display:none">
+                <i class="fas fa-check-circle"></i> Mobile number verified!
+            </div>
+
+            <div class="cd-form-group">
+                <label>Additional Notes</label>
+                <textarea id="cd_notes" rows="2" placeholder="Any special requirements, quantity enquiry, etc."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block" id="cdSubmitBtn" style="margin-top:8px">
+                <i class="fas fa-paper-plane"></i> Submit Order / Enquiry
+            </button>
+        </form>
     </div>
 </div>
 
@@ -72,10 +145,28 @@
     <div class="modal modal-success" id="orderModal" onclick="event.stopPropagation()">
         <div class="success-icon"><i class="fas fa-check-circle"></i></div>
         <h2>Enquiry / Order Submitted!</h2>
-        <p>Thank you! Our team at Ahuja Sales India will contact you within 24 hours to confirm your order & pricing.</p>
+        <p>Thank you! Our team will contact you shortly to confirm your order.</p>
         <p class="order-id">Reference ID: <strong id="orderId"></strong></p>
-        <p style="font-size:.8rem;color:#64748b;margin-top:10px">Call us directly: <a href="tel:9810072048" style="color:#0d47a1;font-weight:700">9810072048</a></p>
-        <button class="btn btn-primary btn-block" onclick="closeOrderModal()" style="margin-top:20px">Continue Shopping</button>
+        
+        <div class="bank-details-box">
+            <h4><i class="fas fa-university"></i> Payment Details</h4>
+            <div class="bank-details-split">
+                <div class="qr-section">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&margin=0&data=upi://pay?pa=9810072048@kotak&pn=AHUJA%20SALES%20INDIA" alt="Kotak UPI QR Code">
+                    <div class="upi-id">UPI: <strong>9810072048@kotak</strong></div>
+                </div>
+                <div class="ac-section">
+                    <p><strong>Beneficiary:</strong> Ahuja Sales (India)</p>
+                    <p><strong>Bank:</strong> Kotak Mahindra Bank</p>
+                    <p><strong>A/c No:</strong> 01722000025499</p>
+                    <p><strong>IFSC:</strong> KKBK0000172</p>
+                    <p><strong>Branch:</strong> Ambadeep Building, K G Marg, ND-1</p>
+                </div>
+            </div>
+        </div>
+
+        <p style="font-size:.8rem;color:#64748b;margin-top:20px">Need help? Call: <a href="tel:9810072048" style="color:#0d47a1;font-weight:700">9810072048</a></p>
+        <button class="btn btn-primary btn-block" onclick="closeOrderModal()" style="margin-top:15px">Continue Shopping</button>
     </div>
 </div>
 
@@ -120,15 +211,15 @@
                 <select class="search-cat" id="searchCat">
                     <option value="">All Categories</option>
                     <option value="ammonia-compressor">Ammonia Compressor</option>
-                    <option value="ammonia-spares">Ammonia Spare Parts</option>
+                    <option value="ammonia-spare-parts">Ammonia Spare Parts</option>
                     <option value="ammonia-valves">Ammonia Valves</option>
-                    <option value="cold-storage">Cold Storage Equipment</option>
+                    <option value="cold-storage-equipment">Cold Storage Equipment</option>
                     <option value="control">Control</option>
-                    <option value="dairy-plant">Dairy Plant Equipment</option>
-                    <option value="frozen-plant">Frozen Plant Equipment</option>
-                    <option value="ice-factory">Ice Factories Equipments</option>
+                    <option value="dairy-plant-equipment">Dairy Plant Equipment</option>
+                    <option value="frozen-plant-equipment">Frozen Plant Equipment</option>
+                    <option value="ice-factories-equipments">Ice Factories Equipments</option>
                     <option value="motors">Motors</option>
-                    <option value="pipe-fittings">Pipe & Pipe Fittings</option>
+                    <option value="pipe---pipe-fittings">Pipe & Pipe Fittings</option>
                 </select>
                 <input type="text" id="searchInput" placeholder="Search valves, compressors, spares..." onkeypress="handleSearch(event)">
                 <button onclick="performSearch()"><i class="fas fa-search"></i> Search</button>
@@ -192,21 +283,21 @@
                 <li class="has-dropdown">
                     <a href="#spares">Spare Parts <i class="fas fa-caret-down fa-xs"></i></a>
                     <div class="sub-dropdown">
-                        <a onclick="filterProducts('ammonia-spares')">Filters & Bearings</a>
-                        <a onclick="filterProducts('ammonia-spares')">O-Ring Sets (Metalex)</a>
-                        <a onclick="filterProducts('ammonia-spares')">Shaft Seals</a>
-                        <a onclick="filterProducts('ammonia-spares')">Piston Rings</a>
+                        <a onclick="filterProducts('ammonia-spare-parts')">Filters & Bearings</a>
+                        <a onclick="filterProducts('ammonia-spare-parts')">O-Ring Sets (Metalex)</a>
+                        <a onclick="filterProducts('ammonia-spare-parts')">Shaft Seals</a>
+                        <a onclick="filterProducts('ammonia-spare-parts')">Piston Rings</a>
                     </div>
                 </li>
-                <li><a href="#cold-storage-sec" onclick="filterProducts('cold-storage')">Cold Storage</a></li>
+                <li><a href="#cold-storage-sec" onclick="filterProducts('cold-storage-equipment')">Cold Storage</a></li>
                 <li class="has-dropdown">
                     <a href="#more-cats">More <i class="fas fa-caret-down fa-xs"></i></a>
                     <div class="sub-dropdown">
-                        <a onclick="filterProducts('ice-factory')">Ice Factory Equipments</a>
-                        <a onclick="filterProducts('dairy-plant')">Dairy Plant Equipment</a>
-                        <a onclick="filterProducts('frozen-plant')">Frozen Plant Equipment</a>
+                        <a onclick="filterProducts('ice-factories-equipments')">Ice Factory Equipments</a>
+                        <a onclick="filterProducts('dairy-plant-equipment')">Dairy Plant Equipment</a>
+                        <a onclick="filterProducts('frozen-plant-equipment')">Frozen Plant Equipment</a>
                         <a onclick="filterProducts('motors')">Motors</a>
-                        <a onclick="filterProducts('pipe-fittings')">Pipe & Fittings</a>
+                        <a onclick="filterProducts('pipe---pipe-fittings')">Pipe & Fittings</a>
                         <a onclick="filterProducts('control')">Control</a>
                     </div>
                 </li>
@@ -288,82 +379,35 @@
     <section class="section-pad" id="products" style="background:#f1f5f9">
         <div class="container">
             <div class="filter-bar">
-                <h2 class="section-title" style="margin-bottom:0;text-align:left;font-size:1.5rem">Browse Products</h2>
+                <h2 class="section-title" style="margin-bottom:0;text-align:left;font-size:1.5rem">Browse Products <span id="productCount" style="font-size:0.9rem; color:var(--text-muted); margin-left:10px"></span></h2>
                 <div class="filter-tags" id="filterTags">
                     <button class="filter-tag active" data-cat="all" onclick="filterProducts('all')">All</button>
                     <button class="filter-tag" data-cat="ammonia-valves" onclick="filterProducts('ammonia-valves')">Ammonia Valves</button>
                     <button class="filter-tag" data-cat="ammonia-compressor" onclick="filterProducts('ammonia-compressor')">Compressors</button>
-                    <button class="filter-tag" data-cat="ammonia-spares" onclick="filterProducts('ammonia-spares')">Spare Parts</button>
-                    <button class="filter-tag" data-cat="cold-storage" onclick="filterProducts('cold-storage')">Cold Storage</button>
-                    <button class="filter-tag" data-cat="ice-factory" onclick="filterProducts('ice-factory')">Ice Factory</button>
+                    <button class="filter-tag" data-cat="ammonia-spare-parts" onclick="filterProducts('ammonia-spare-parts')">Spare Parts</button>
+                    <button class="filter-tag" data-cat="cold-storage-equipment" onclick="filterProducts('cold-storage-equipment')">Cold Storage</button>
+                    <button class="filter-tag" data-cat="ice-factories-equipments" onclick="filterProducts('ice-factories-equipments')">Ice Factory</button>
                     <button class="filter-tag" data-cat="motors" onclick="filterProducts('motors')">Motors</button>
-                    <button class="filter-tag" data-cat="pipe-fittings" onclick="filterProducts('pipe-fittings')">Pipes & Fittings</button>
+                    <button class="filter-tag" data-cat="pipe---pipe-fittings" onclick="filterProducts('pipe---pipe-fittings')">Pipes & Fittings</button>
                     <button class="filter-tag" data-cat="control" onclick="filterProducts('control')">Control</button>
-                    <button class="filter-tag" data-cat="dairy-plant" onclick="filterProducts('dairy-plant')">Dairy Plant</button>
-                    <button class="filter-tag" data-cat="frozen-plant" onclick="filterProducts('frozen-plant')">Frozen Plant</button>
+                    <button class="filter-tag" data-cat="dairy-plant-equipment" onclick="filterProducts('dairy-plant-equipment')">Dairy Plant</button>
+                    <button class="filter-tag" data-cat="frozen-plant-equipment" onclick="filterProducts('frozen-plant-equipment')">Frozen Plant</button>
                 </div>
+                <select id="sortSelect" class="search-cat" style="width:auto; margin-left:auto; border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px;" onchange="renderProducts(document.querySelector('.filter-tag.active').dataset.cat)">
+                    <option value="">Sort By</option>
+                    <option value="low">Price: Low to High</option>
+                    <option value="high">Price: High to Low</option>
+                    <option value="new">Latest</option>
+                </select>
             </div>
-            <div class="product-grid" id="productGrid">
+            <div class="product-grid" id="productsGrid">
                 <!-- Rendered by JS -->
             </div>
         </div>
     </section>
 
-    <!-- ===== AMMONIA VALVES SECTION ===== -->
-    <section class="section-pad bg-white" id="ammonia-valves">
-        <div class="container">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" style="text-align:left;margin-bottom:5px">Ammonia Valves</h2>
-                    <p class="section-sub">N.G.V.S · S.V.S · D.M.S · N.G.V.W · N.A.V.W — Globe, Angle &amp; Check Valves</p>
-                </div>
-                <button class="btn btn-outline-sm" onclick="filterProducts('ammonia-valves');document.getElementById('products').scrollIntoView({behavior:'smooth'})">View All →</button>
-            </div>
-            <div class="product-grid mini-grid" id="ammonia-valves-grid"></div>
-        </div>
-    </section>
-
-    <!-- ===== COMPRESSORS SECTION ===== -->
-    <section class="section-pad" id="compressors" style="background:#f8fafc">
-        <div class="container">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" style="text-align:left;margin-bottom:5px">Ammonia Compressors</h2>
-                    <p class="section-sub">Water Cooled — MX-100, MX-200, MX-300, MX-400, MX-600 Single Stage</p>
-                </div>
-                <button class="btn btn-outline-sm" onclick="filterProducts('ammonia-compressor');document.getElementById('products').scrollIntoView({behavior:'smooth'})">View All →</button>
-            </div>
-            <div class="product-grid mini-grid" id="compressor-grid"></div>
-        </div>
-    </section>
-
-    <!-- ===== SPARE PARTS SECTION ===== -->
-    <section class="section-pad bg-white" id="spares">
-        <div class="container">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" style="text-align:left;margin-bottom:5px">Ammonia Spare Parts</h2>
-                    <p class="section-sub">Metalex O-Ring Sets, Filters, Bearings, Shaft Seals, Piston Rings, Valve Plates</p>
-                </div>
-                <button class="btn btn-outline-sm" onclick="filterProducts('ammonia-spares');document.getElementById('products').scrollIntoView({behavior:'smooth'})">View All →</button>
-            </div>
-            <div class="product-grid mini-grid" id="spares-grid"></div>
-        </div>
-    </section>
-
-    <!-- ===== COLD STORAGE SECTION ===== -->
-    <section class="section-pad" id="cold-storage-sec" style="background:#f1f5f9">
-        <div class="container">
-            <div class="section-header">
-                <div>
-                    <h2 class="section-title" style="text-align:left;margin-bottom:5px">Cold Storage Equipment</h2>
-                    <p class="section-sub">Air Cooling Units, Condensers, Cooling Coils, Cold Room Valves</p>
-                </div>
-                <button class="btn btn-outline-sm" onclick="filterProducts('cold-storage');document.getElementById('products').scrollIntoView({behavior:'smooth'})">View All →</button>
-            </div>
-            <div class="product-grid mini-grid" id="cold-storage-grid"></div>
-        </div>
-    </section>
+    <!-- ===== DYNAMIC CATEGORY SECTIONS ===== -->
+    <div id="dynamicCategorySections"></div>
 
     <!-- ===== OUR PARTNERS ===== -->
     <section class="section-pad bg-white">
