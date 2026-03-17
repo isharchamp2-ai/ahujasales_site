@@ -16,17 +16,8 @@ const PORT = process.env.PORT || 3001;
 
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
-app.use(cors({
-  origin: [
-    'http://localhost',
-    'http://127.0.0.1',
-    /^http:\/\/localhost:\d+$/,
-    /^http:\/\/127\.0\.0\.1:\d+$/,
-    'https://ahujasalesindia.com',
-    'https://www.ahujasalesindia.com',
-    'https://test.ahujasalesindia.com'
-  ]
-}));
+app.use(cors());
+
 
 // ─── In-memory store  { mobile → { otp, expiry, attempts, lastSent } } ────────
 const otpStore = new Map();
