@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Ahuja Sales India website with SMS OTP verification",
   "scripts": {
-    "start": "node otp-server.js",
+    "start": "node server.js",
     "start:otp": "node otp-server.js"
   },
   "dependencies": {
