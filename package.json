@@ -1,5 +1,16 @@
 {
+  "name": "ahujasales-site",
+  "version": "1.0.0",
+  "description": "Ahuja Sales India website with SMS OTP verification",
+  "scripts": {
+    "start": "node otp-server.js",
+    "start:otp": "node otp-server.js"
+  },
   "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^3.3.2",
     "xlsx": "^0.18.5"
   }
 }

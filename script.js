@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    Ahuja Sales India - Full E-commerce JavaScript
    Built from real data at test.ahujasalesindia.com
    ============================================================ */
@@ -49547,62 +49547,95 @@ function closeCustomerDetails() {
 }
 
 function sendOTP() {
-    const mobile = document.getElementById('cd_mobile').value.trim();
-    const cleaned = mobile.replace(/[\s\-\+]/g, '');
+    var mobile = document.getElementById('cd_mobile').value.trim();
+    var cleaned = mobile.replace(/[\s\-\+]/g, '');
     if (cleaned.length < 10 || !/^[0-9]+$/.test(cleaned)) {
         showToast('Please enter a valid 10-digit mobile number.', 'error');
         return;
     }
-
-    // Generate a simulated 6-digit OTP
-    _otpGenerated = Math.floor(100000 + Math.random() * 900000).toString();
-    _otpVerified = false;
-
-    // Show OTP in a toast (in production this would be sent via SMS API)
-    showToast(`OTP sent! Demo OTP: ${_otpGenerated}`, 'success');
-
-    // Show OTP verification row
-    document.getElementById('otpVerifyRow').style.display = 'block';
-    document.getElementById('otpVerifiedBadge').style.display = 'none';
-    const msg = document.getElementById('otpStatusMsg');
-    msg.textContent = 'OTP sent to your mobile number.';
-    msg.style.color = '#0d47a1';
-    document.getElementById('cd_otp').value = '';
-
-    // Disable send button with 30s countdown
-    const sendBtn = document.getElementById('sendOtpBtn');
+    var sendBtn = document.getElementById('sendOtpBtn');
     sendBtn.disabled = true;
-    let secs = 30;
-    sendBtn.textContent = `Resend (${secs}s)`;
-    const timer = setInterval(() => {
-        secs--;
-        sendBtn.textContent = secs > 0 ? `Resend (${secs}s)` : 'Resend OTP';
-        if (secs <= 0) { clearInterval(timer); sendBtn.disabled = false; }
-    }, 1000);
+    sendBtn.textContent = 'Sending\u2026';
+    document.getElementById('otpStatusMsg').textContent = '';
+    document.getElementById('cd_otp').value = '';
+    fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: cleaned })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        if (data.success) {
+            _otpVerified = false;
+            document.getElementById('otpVerifyRow').style.display = 'block';
+            document.getElementById('otpVerifiedBadge').style.display = 'none';
+            var msg = document.getElementById('otpStatusMsg');
+            msg.textContent = 'OTP sent to your mobile number.';
+            msg.style.color = '#0d47a1';
+            showToast('OTP sent! Please check your SMS.', 'success');
+        } else {
+            showToast(data.message || 'Failed to send OTP. Please try again.', 'error');
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send OTP';
+            return;
+        }
+        var secs = 30;
+        sendBtn.textContent = 'Resend (' + secs + 's)';
+        var timer = setInterval(function() {
+            secs--;
+            sendBtn.textContent = secs > 0 ? 'Resend (' + secs + 's)' : 'Resend OTP';
+            if (secs <= 0) { clearInterval(timer); sendBtn.disabled = false; }
+        }, 1000);
+    })
+    .catch(function(err) {
+        console.error('OTP send error:', err);
+        showToast('Could not reach OTP server. Is it running? Run: node otp-server.js', 'error');
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send OTP';
+    });
 }
 
 function verifyOTP() {
-    const entered = document.getElementById('cd_otp').value.trim();
-    const msg = document.getElementById('otpStatusMsg');
-
-    if (!_otpGenerated) {
-        msg.textContent = 'Please send OTP first.';
+    var mobile  = document.getElementById('cd_mobile').value.trim().replace(/[\s\-\+]/g, '');
+    var entered = document.getElementById('cd_otp').value.trim();
+    var msg     = document.getElementById('otpStatusMsg');
+    if (!entered) {
+        msg.textContent = 'Please enter the OTP received on your mobile.';
         msg.style.color = '#ef4444';
         return;
     }
-    if (entered === _otpGenerated) {
-        _otpVerified = true;
-        document.getElementById('otpVerifyRow').style.display = 'none';
-        document.getElementById('otpVerifiedBadge').style.display = 'flex';
-        showToast('Mobile number verified!', 'success');
-    } else {
-        msg.textContent = 'Incorrect OTP. Please try again.';
+    var verifyBtn = document.getElementById('verifyOtpBtn');
+    verifyBtn.disabled = true;
+    verifyBtn.textContent = 'Verifying\u2026';
+    fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: mobile, otp: entered })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Verify';
+        if (data.success) {
+            _otpVerified = true;
+            document.getElementById('otpVerifyRow').style.display = 'none';
+            document.getElementById('otpVerifiedBadge').style.display = 'flex';
+            showToast('Mobile number verified!', 'success');
+        } else {
+            msg.textContent = data.message || 'Incorrect OTP. Please try again.';
+            msg.style.color = '#ef4444';
+            document.getElementById('cd_otp').value = '';
+            document.getElementById('cd_otp').focus();
+        }
+    })
+    .catch(function(err) {
+        verifyBtn.disabled = false;
+        verifyBtn.textContent = 'Verify';
+        console.error('OTP verify error:', err);
+        msg.textContent = 'Could not reach OTP server. Please try again.';
         msg.style.color = '#ef4444';
-        document.getElementById('cd_otp').value = '';
-        document.getElementById('cd_otp').focus();
-    }
+    });
 }
-
 function submitCustomerDetails(e) {
     e.preventDefault();
 
