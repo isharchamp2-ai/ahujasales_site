@@ -8,8 +8,28 @@ const express = require('express');
 const cors = require('cors');
 const fetch = require('node-fetch');
 const crypto = require('crypto');
-const fs = require('fs');
-const { execSync } = require('child_process');
+// ─── GitHub API Helpers ────────────────────────────────────────────────────────
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
+const GITHUB_REPO  = process.env.GITHUB_REPO  || 'isharchamp2-ai/ahujasales_site';
+const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
+const ADMIN_FILE   = 'admin_products.json';
+
+async function getGitHubFile(path) {
+  const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
+  const res  = await fetch(url, { headers: { Authorization: `token ${GITHUB_TOKEN}`, Accept: 'application/vnd.github.v3+json' } });
+  if (res.status === 404) return { content: [], sha: null };
+  const data = await res.json();
+  return { content: JSON.parse(Buffer.from(data.content, 'base64').toString('utf8')), sha: data.sha };
+}
+
+async function putGitHubFile(path, content, sha, message) {
+  const url  = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}`;
+  const body = { message, branch: GITHUB_BRANCH, content: Buffer.from(JSON.stringify(content, null, 2)).toString('base64') };
+  if (sha) body.sha = sha;
+  const res = await fetch(url, { method: 'PUT', headers: { Authorization: `token ${GITHUB_TOKEN}`, 'Content-Type': 'application/json', Accept: 'application/vnd.github.v3+json' }, body: JSON.stringify(body) });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message || 'GitHub API error'); }
+  return res.json();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -217,48 +237,49 @@ function requireAdminToken(req, res, next) {
   next();
 }
 
-// Add Product Route
-app.post('/api/admin/products', requireAdminToken, (req, res) => {
+// GET admin products (public — fetched by frontend on page load)
+app.get('/api/admin-products', async (req, res) => {
+  try {
+    const { content } = await getGitHubFile(ADMIN_FILE);
+    res.json({ success: true, products: Array.isArray(content) ? content : [] });
+  } catch (err) {
+    console.error('[Admin Products GET]', err.message);
+    res.json({ success: true, products: [] });
+  }
+});
+
+// Add Product Route — stores in GitHub, no Netlify rebuild needed
+app.post('/api/admin/products', requireAdminToken, async (req, res) => {
   try {
     const newProduct = req.body;
+    const { content: products, sha } = await getGitHubFile(ADMIN_FILE);
 
-    // 1. Read existing parsed_data.json
-    const dataPath = './parsed_data.json';
-    let rawData = fs.readFileSync(dataPath, 'utf8');
-    let products = JSON.parse(rawData);
-
-    // 2. Format new product and append
+    const IMG_BASE = 'https://test.ahujasalesindia.com';
     const newItem = {
-      ItemID: Math.floor(Math.random() * 1000000) + 100, // random ID
-      SKU: crypto.randomUUID().toUpperCase(),
-      Category: newProduct.Category || 'Other',
-      Type: "Added via Admin",
-      SubCatergory: newProduct.Model || '',
-      BrandName: "Super",
-      Size: newProduct.Size || '',
-      Model: newProduct.Model || '',
-      SellingRate: newProduct.SellingRate || 0,
-      PicName: newProduct.PicName ? newProduct.PicName.replace('https://test.ahujasalesindia.com', '') : '/Images/logo.png',
-      Description: newProduct.Description || '',
-      Specification: newProduct.Specification || '',
-      Status: 1,
-      AvailableQuantity: 100
+      id:          crypto.randomBytes(8).toString('hex'),
+      cat:         (newProduct.Category || 'other').toLowerCase().replace(/[^a-z0-9]/g, '-'),
+      name:        `${newProduct.Model || newProduct.Category}${newProduct.Size ? ' (' + newProduct.Size + ')' : ''}`,
+      desc:        newProduct.Description  || '',
+      spec:        newProduct.Specification || '',
+      price:       parseFloat(newProduct.SellingRate) || 0,
+      img:         newProduct.PicName
+                     ? (newProduct.PicName.startsWith('http') ? newProduct.PicName : IMG_BASE + newProduct.PicName)
+                     : IMG_BASE + '/Images/logo.png',
+      rating:      4.8,
+      reviews:     Math.floor(Math.random() * 20 + 5),
+      inStock:     true,
+      addedAt:     new Date().toISOString()
     };
 
     products.push(newItem);
+    await putGitHubFile(ADMIN_FILE, products, sha, `Add product: ${newItem.name}`);
 
-    // 3. Save back to parsed_data.json
-    fs.writeFileSync(dataPath, JSON.stringify(products, null, 2), 'utf8');
-
-    // 4. Run the inject script to update script.js automatically
-    console.log('Injecting new product into script.js...');
-    execSync('node inject_excel_data.js', { stdio: 'inherit' });
-
-    res.json({ success: true, message: 'Product added successfully!', item: newItem });
+    console.log(`[Admin] Product published to GitHub: ${newItem.name}`);
+    res.json({ success: true, message: 'Product published! It will appear on the website within seconds.', item: newItem });
 
   } catch (error) {
-    console.error('Error adding product:', error);
-    res.status(500).json({ success: false, message: 'Failed to add product. ' + error.message });
+    console.error('[Admin Products POST]', error.message);
+    res.status(500).json({ success: false, message: 'Failed to publish product: ' + error.message });
   }
 });
 

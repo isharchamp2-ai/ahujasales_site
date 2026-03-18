@@ -9,5 +9,11 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
+      - key: GITHUB_TOKEN
+        sync: false
+      - key: GITHUB_REPO
+        value: isharchamp2-ai/ahujasales_site
+      - key: GITHUB_BRANCH
+        value: main
       - key: PORT
         value: 10000

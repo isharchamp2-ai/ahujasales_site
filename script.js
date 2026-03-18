@@ -49669,3 +49669,25 @@ function submitCustomerDetails(e) {
     // Log details (in production: POST to backend)
     console.log('Order Submitted:', { orderId, name, company, email, gst, mobile, address, notes, flow: _cdFlow });
 }
+
+// ============================================================
+// DYNAMIC ADMIN PRODUCTS LOADER
+// ============================================================
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const res = await fetch('https://ahujasales-site.onrender.com/api/admin-products');
+        const data = await res.json();
+        if (data.success && data.products && data.products.length > 0) {
+            products.push(...data.products);
+            console.log(`Loaded ${data.products.length} dynamic admin products`);
+            
+            // Re-render categories since new products might have new categories
+            renderCategories();
+            
+            // Re-render grid to show the new products
+            renderGrid(products);
+        }
+    } catch (err) {
+        console.error('Failed to load dynamic admin products:', err);
+    }
+});
