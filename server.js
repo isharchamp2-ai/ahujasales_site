@@ -82,7 +82,6 @@ async function sendViaSMS(mobile, otp) {
 
   const url = 'https://www.fast2sms.com/dev/bulkV2';
   const body = new URLSearchParams({
-    authorization: apiKey,
     route: 'q',        // Quick SMS (no DLT required for transactional OTPs)
     message: message,
     language: 'english',
@@ -92,7 +91,10 @@ async function sendViaSMS(mobile, otp) {
 
   const resp = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: { 
+      'authorization': apiKey,
+      'Content-Type': 'application/x-www-form-urlencoded' 
+    },
     body: body.toString()
   });
 
