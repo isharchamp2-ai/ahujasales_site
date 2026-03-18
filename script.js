@@ -49537,6 +49537,12 @@ function renderRelatedProducts(product) {
 // ============================================================
 // CUSTOMER DETAILS MODAL + OTP VERIFICATION
 // ============================================================
+
+// Automatic backend URL switching
+const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:3001' 
+    : 'https://ahujasales-site.onrender.com';
+
 let _cdFlow = '';        // 'buynow' or 'checkout'
 let _otpGenerated = '';  // simulated OTP
 let _otpVerified = false;
@@ -49578,7 +49584,7 @@ function sendOTP() {
     sendBtn.textContent = 'Sending\u2026';
     document.getElementById('otpStatusMsg').textContent = '';
     document.getElementById('cd_otp').value = '';
-    fetch('https://ahujasales-site.onrender.com/api/send-otp', {
+    fetch(`${BACKEND_URL}/api/send-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
         body: JSON.stringify({ mobile: cleaned })
@@ -49627,7 +49633,7 @@ function verifyOTP() {
     var verifyBtn = document.getElementById('verifyOtpBtn');
     verifyBtn.disabled = true;
     verifyBtn.textContent = 'Verifying\u2026';
-    fetch('https://ahujasales-site.onrender.com/api/verify-otp', {
+    fetch(`${BACKEND_URL}/api/verify-otp`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
         body: JSON.stringify({ mobile: mobile, otp: entered })

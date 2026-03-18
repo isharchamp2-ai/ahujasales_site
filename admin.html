@@ -139,6 +139,11 @@
     </div>
 
     <script>
+        // Automatic backend URL switching
+        const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? 'http://localhost:3001' 
+            : 'https://ahujasales-site.onrender.com';
+
         // Simple state
         let token = localStorage.getItem('asi_admin_token') || null;
 
@@ -177,7 +182,7 @@
             err.style.display = 'none';
 
             try {
-                const res = await fetch('https://ahujasales-site.onrender.com/api/admin/login', {
+                const res = await fetch(`${BACKEND_URL}/api/admin/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
                     body: JSON.stringify({ password: pwd })
@@ -225,7 +230,7 @@
             status.className = 'status-msg text-accent';
 
             try {
-                const res = await fetch('https://ahujasales-site.onrender.com/api/admin/products', {
+                const res = await fetch(`${BACKEND_URL}/api/admin/products`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
