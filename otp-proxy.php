@@ -1,4 +1,4 @@
-<?php
+    <?php
 /**
  * OTP Proxy — Ahuja Sales India
  * Upload this file to your web server (works on any PHP 7.4+ host).
