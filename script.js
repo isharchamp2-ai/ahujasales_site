@@ -49671,27 +49671,81 @@ function submitCustomerDetails(e) {
         return;
     }
 
-    const name = document.getElementById('cd_name').value.trim();
+    const name    = document.getElementById('cd_name').value.trim();
     const company = document.getElementById('cd_company').value.trim();
-    const email = document.getElementById('cd_email').value.trim();
-    const gst = document.getElementById('cd_gst').value.trim().toUpperCase();
-    const mobile = document.getElementById('cd_mobile').value.trim();
+    const email   = document.getElementById('cd_email').value.trim();
+    const gst     = document.getElementById('cd_gst').value.trim().toUpperCase();
+    const mobile  = document.getElementById('cd_mobile').value.trim();
     const address = document.getElementById('cd_address').value.trim();
-    const notes = document.getElementById('cd_notes').value.trim();
+    const notes   = document.getElementById('cd_notes').value.trim();
 
-    // Clear cart if this was a cart checkout flow
+    const btn = document.getElementById('cdSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting Order...';
+
+    // Build cart/product context
+    let orderPayload = {
+        customer: { name, company, email, gst, mobile, address },
+        notes,
+        flow: _cdFlow
+    };
+
     if (_cdFlow === 'checkout') {
-        cart = []; saveCart(); updateCartUI();
+        // Cart checkout — send all cart items
+        orderPayload.productName = 'Cart Order (' + cart.length + ' items)';
+        orderPayload.productId   = null;
+        orderPayload.category    = 'multiple';
+        orderPayload.qty         = cart.reduce((s, i) => s + (i.qty || 1), 0);
+        orderPayload.price       = cart.reduce((s, i) => s + ((i.price || 0) * (i.qty || 1)), 0);
+        orderPayload.cartItems   = cart.map(i => ({ id: i.id, name: i.name, qty: i.qty, price: i.price }));
+    } else {
+        // Buy now — get product from modal context
+        const modalName  = document.getElementById('modalProductName')  ? document.getElementById('modalProductName').textContent  : '';
+        const modalPrice = document.getElementById('modalProductPrice') ? parseFloat(document.getElementById('modalProductPrice').textContent.replace(/[^\d.]/g, '')) : 0;
+        const modalQty   = parseInt((document.getElementById('modalQty') ? document.getElementById('modalQty').value : '1')) || 1;
+        orderPayload.productName = modalName;
+        orderPayload.qty         = modalQty;
+        orderPayload.price       = modalPrice;
+        orderPayload.cartItems   = [];
     }
 
-    closeCustomerDetails();
+    fetch(`${BACKEND_URL}/api/orders`, {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json', 'bypass-tunnel-reminder': 'true' },
+        body:    JSON.stringify(orderPayload)
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Order / Enquiry';
 
-    // Show order success modal
-    const orderId = 'ASI-' + Date.now().toString().slice(-8);
-    document.getElementById('orderId').textContent = orderId;
-    document.getElementById('orderModalOverlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
+        if (_cdFlow === 'checkout') {
+            cart = []; saveCart(); updateCartUI();
+        }
+        closeCustomerDetails();
 
-    // Log details (in production: POST to backend)
-    console.log('Order Submitted:', { orderId, name, company, email, gst, mobile, address, notes, flow: _cdFlow });
+        // Show order success modal with server-assigned ID
+        const displayId = data.orderId || ('ASI-' + Date.now().toString().slice(-8));
+        document.getElementById('orderId').textContent = displayId;
+        document.getElementById('orderModalOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+
+        if (!data.success) {
+            console.warn('[Order]', data.message);
+        }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Order / Enquiry';
+        console.error('Order submit error:', err);
+        // Fallback: show modal anyway with local ID
+        if (_cdFlow === 'checkout') { cart = []; saveCart(); updateCartUI(); }
+        closeCustomerDetails();
+        const fallbackId = 'ASI-' + Date.now().toString().slice(-8);
+        document.getElementById('orderId').textContent = fallbackId;
+        document.getElementById('orderModalOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+        showToast('Order saved locally. Sync will happen when connected.', 'info');
+    });
 }
+

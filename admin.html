@@ -44,90 +44,192 @@
                 <h3>Admin</h3>
             </div>
             <ul class="nav-menu">
-                <li class="active"><i class="fas fa-box-open"></i> Add Products</li>
-                <li><i class="fas fa-list"></i> Catalog (Coming Soon)</li>
-                <li><i class="fas fa-chart-line"></i> Analytics (Coming Soon)</li>
+                <li id="navProducts" onclick="showSection('products')"><i class="fas fa-box-open"></i> Add Products</li>
+                <li id="navOrders" onclick="showSection('orders')">
+                    <i class="fas fa-shopping-bag"></i> Orders
+                    <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
+                </li>
             </ul>
             <button class="btn-logout" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </aside>
 
         <main class="main-content">
             <header class="topbar">
-                <h2>Product Management</h2>
+                <h2 id="topbarTitle">Product Management</h2>
                 <div class="user-badge">
                     <i class="fas fa-user-shield"></i> Sandeep Ahuja
                 </div>
             </header>
 
             <div class="content-scroll">
-                <div class="glass-card form-card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-plus-circle"></i> Add New Product to Website</h3>
-                        <p>Fill out the details below. Once safely added, it will automatically appear live on
-                            ahujasalesindia.com.</p>
+
+                <!-- ===== ADD PRODUCTS SECTION ===== -->
+                <div id="sectionProducts">
+                    <div class="glass-card form-card">
+                        <div class="card-header">
+                            <h3><i class="fas fa-plus-circle"></i> Add New Product to Website</h3>
+                            <p>Fill out the details below. Once safely added, it will automatically appear live on
+                                ahujasalesindia.com.</p>
+                        </div>
+
+                        <form id="addProductForm" onsubmit="handleAddProduct(event)">
+
+                            <div class="form-grid">
+                                <div class="input-group-col">
+                                    <label>Category *</label>
+                                    <select id="pCat" required>
+                                        <option value="">Select Category...</option>
+                                        <option value="Ammonia Valves">Ammonia Valves</option>
+                                        <option value="Ammonia Compressor">Ammonia Compressor</option>
+                                        <option value="Ammonia Spare Parts">Ammonia Spare Parts</option>
+                                        <option value="Cold Storage Equipment">Cold Storage Equipment</option>
+                                        <option value="Dairy Plant Equipment">Dairy Plant Equipment</option>
+                                        <option value="Ice Factories Equipments">Ice Factory Equipments</option>
+                                        <option value="Motors">Motors</option>
+                                        <option value="Pipe &amp; Pipe Fittings">Pipes &amp; Fittings</option>
+                                        <option value="Control">Control</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-group-col">
+                                    <label>Sub-Category / Model *</label>
+                                    <input type="text" id="pModel" placeholder="e.g. Globe Valve FLANGED" required>
+                                </div>
+
+                                <div class="input-group-col">
+                                    <label>Size</label>
+                                    <input type="text" id="pSize" placeholder="e.g. 1/2' or 15mm">
+                                </div>
+
+                                <div class="input-group-col">
+                                    <label>Selling Price (₹) *</label>
+                                    <input type="number" id="pPrice" placeholder="0.00" min="0" required>
+                                </div>
+                            </div>
+
+                            <div class="input-group-col">
+                                <label>Product Image Link</label>
+                                <input type="url" id="pImg"
+                                    placeholder="https://test.ahujasalesindia.com/images/products/...jpg">
+                                <small>Leave empty to use the default company logo placeholder.</small>
+                            </div>
+
+                            <div class="input-group-col">
+                                <label>Description *</label>
+                                <textarea id="pDesc" rows="4" placeholder="Full product description..." required></textarea>
+                            </div>
+
+                            <div class="input-group-col">
+                                <label>Key Specifications (Optional)</label>
+                                <textarea id="pSpec" rows="3" placeholder="Port Size: 1/2... Body: Cast Iron..."></textarea>
+                            </div>
+
+                            <div class="form-actions">
+                                <p id="formStatus" class="status-msg"></p>
+                                <button type="submit" class="btn-glow success" id="submitProdBtn">
+                                    <i class="fas fa-cloud-upload-alt"></i> Publish Product Live
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ===== ORDERS SECTION ===== -->
+                <div id="sectionOrders" style="display:none;">
+
+                    <!-- Stats Cards -->
+                    <div class="orders-stats-row">
+                        <div class="stat-card stat-total">
+                            <div class="stat-icon"><i class="fas fa-shopping-bag"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="statTotal">0</span>
+                                <span class="stat-label">Total Orders</span>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-pending">
+                            <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="statPending">0</span>
+                                <span class="stat-label">Pending</span>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-delivered">
+                            <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="statDelivered">0</span>
+                                <span class="stat-label">Delivered</span>
+                            </div>
+                        </div>
+                        <div class="stat-card stat-revenue">
+                            <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-val" id="statRevenue">₹0</span>
+                                <span class="stat-label">Est. Revenue</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <form id="addProductForm" onsubmit="handleAddProduct(event)">
-
-                        <div class="form-grid">
-                            <div class="input-group-col">
-                                <label>Category *</label>
-                                <select id="pCat" required>
-                                    <option value="">Select Category...</option>
-                                    <option value="Ammonia Valves">Ammonia Valves</option>
-                                    <option value="Ammonia Compressor">Ammonia Compressor</option>
-                                    <option value="Ammonia Spare Parts">Ammonia Spare Parts</option>
-                                    <option value="Cold Storage Equipment">Cold Storage Equipment</option>
-                                    <option value="Dairy Plant Equipment">Dairy Plant Equipment</option>
-                                    <option value="Ice Factories Equipments">Ice Factory Equipments</option>
-                                    <option value="Motors">Motors</option>
-                                    <option value="Pipe & Pipe Fittings">Pipes & Fittings</option>
-                                    <option value="Control">Control</option>
-                                    <option value="Other">Other</option>
-                                </select>
-                            </div>
-
-                            <div class="input-group-col">
-                                <label>Sub-Category / Model *</label>
-                                <input type="text" id="pModel" placeholder="e.g. Globe Valve FLANGED" required>
-                            </div>
-
-                            <div class="input-group-col">
-                                <label>Size</label>
-                                <input type="text" id="pSize" placeholder="e.g. 1/2' or 15mm">
-                            </div>
-
-                            <div class="input-group-col">
-                                <label>Selling Price (₹) *</label>
-                                <input type="number" id="pPrice" placeholder="0.00" min="0" required>
-                            </div>
+                    <!-- Filters + Refresh -->
+                    <div class="orders-toolbar glass-card">
+                        <div class="orders-filters">
+                            <button class="filter-pill active" data-status="all" onclick="filterOrders('all')">All</button>
+                            <button class="filter-pill" data-status="Pending" onclick="filterOrders('Pending')">Pending</button>
+                            <button class="filter-pill" data-status="Confirmed" onclick="filterOrders('Confirmed')">Confirmed</button>
+                            <button class="filter-pill" data-status="Shipped" onclick="filterOrders('Shipped')">Shipped</button>
+                            <button class="filter-pill" data-status="Delivered" onclick="filterOrders('Delivered')">Delivered</button>
+                            <button class="filter-pill" data-status="Cancelled" onclick="filterOrders('Cancelled')">Cancelled</button>
                         </div>
-
-                        <div class="input-group-col">
-                            <label>Product Image Link</label>
-                            <input type="url" id="pImg"
-                                placeholder="https://test.ahujasalesindia.com/images/products/...jpg">
-                            <small>Leave empty to use the default company logo placeholder.</small>
-                        </div>
-
-                        <div class="input-group-col">
-                            <label>Description *</label>
-                            <textarea id="pDesc" rows="4" placeholder="Full product description..." required></textarea>
-                        </div>
-
-                        <div class="input-group-col">
-                            <label>Key Specifications (Optional)</label>
-                            <textarea id="pSpec" rows="3" placeholder="Port Size: 1/2... Body: Cast Iron..."></textarea>
-                        </div>
-
-                        <div class="form-actions">
-                            <p id="formStatus" class="status-msg"></p>
-                            <button type="submit" class="btn-glow success" id="submitProdBtn">
-                                <i class="fas fa-cloud-upload-alt"></i> Publish Product Live
+                        <div class="orders-search-wrap">
+                            <input type="text" id="orderSearch" placeholder="Search name, phone, product…" oninput="renderOrdersTable()">
+                            <button class="refresh-btn" onclick="loadOrders()" id="refreshBtn" title="Refresh Orders">
+                                <i class="fas fa-sync-alt"></i>
                             </button>
                         </div>
-                    </form>
+                    </div>
+
+                    <!-- Orders Table -->
+                    <div class="glass-card orders-table-card">
+                        <div id="ordersLoading" class="orders-loading" style="display:none;">
+                            <i class="fas fa-circle-notch fa-spin"></i> Loading orders…
+                        </div>
+                        <div id="ordersEmpty" class="orders-empty" style="display:none;">
+                            <i class="fas fa-inbox"></i>
+                            <p>No orders yet. When customers place orders on the website, they'll appear here.</p>
+                        </div>
+                        <div class="table-wrap" id="tableWrap">
+                            <table class="orders-table" id="ordersTable">
+                                <thead>
+                                    <tr>
+                                        <th>Order ID</th>
+                                        <th>Date</th>
+                                        <th>Customer</th>
+                                        <th>Phone</th>
+                                        <th>Product</th>
+                                        <th>Qty</th>
+                                        <th>Amount</th>
+                                        <th>Address</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ordersBody">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Order Detail Modal -->
+                    <div class="order-detail-overlay" id="orderDetailOverlay" onclick="closeOrderDetail()">
+                        <div class="order-detail-modal" onclick="event.stopPropagation()">
+                            <button class="modal-close-btn" onclick="closeOrderDetail()"><i class="fas fa-times"></i></button>
+                            <h3><i class="fas fa-file-invoice"></i> Order Details</h3>
+                            <div id="orderDetailContent"></div>
+                        </div>
+                    </div>
+
                 </div>
+
             </div>
         </main>
     </div>
@@ -139,20 +241,19 @@
     </div>
 
     <script>
-        // Automatic backend URL switching
-        const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3001' 
+        // ─── Config ───────────────────────────────────────────────────────────────
+        const BACKEND_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:3001'
             : 'https://ahujasales-site.onrender.com';
 
-        // Simple state
         let token = localStorage.getItem('asi_admin_token') || null;
+        let allOrders = [];
+        let currentFilter = 'all';
+        let autoRefreshTimer = null;
 
-        // Check token on load
-        if (token) {
-            showDashboard();
-        }
+        if (token) showDashboard();
 
-        // --- Toast UI ---
+        // ─── Toast ────────────────────────────────────────────────────────────────
         function showToast(msg, type = 'success') {
             const toast = document.getElementById('toast');
             document.getElementById('toastMsg').textContent = msg;
@@ -161,6 +262,9 @@
             if (type === 'error') {
                 toast.style.background = '#ef4444';
                 icon.className = 'fas fa-exclamation-circle';
+            } else if (type === 'info') {
+                toast.style.background = '#0d47a1';
+                icon.className = 'fas fa-info-circle';
             } else {
                 toast.style.background = '#10b981';
                 icon.className = 'fas fa-check-circle';
@@ -170,7 +274,7 @@
             setTimeout(() => toast.classList.remove('show'), 3500);
         }
 
-        // --- Login ---
+        // ─── Login ────────────────────────────────────────────────────────────────
         async function handleLogin(e) {
             e.preventDefault();
             const pwd = document.getElementById('adminPassword').value;
@@ -207,7 +311,45 @@
             btn.innerHTML = 'Authenticate <i class="fas fa-arrow-right"></i>';
         }
 
-        // --- Add Product ---
+        // ─── Dashboard ────────────────────────────────────────────────────────────
+        function showDashboard() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('dashboardScreen').style.display = 'flex';
+            showSection('orders'); // default to orders view
+            loadOrders();
+            // Auto-refresh every 30s
+            clearInterval(autoRefreshTimer);
+            autoRefreshTimer = setInterval(loadOrders, 30000);
+        }
+
+        function logout() {
+            token = null;
+            clearInterval(autoRefreshTimer);
+            localStorage.removeItem('asi_admin_token');
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.getElementById('dashboardScreen').style.display = 'none';
+            document.getElementById('adminPassword').value = '';
+        }
+
+        // ─── Section Switching ────────────────────────────────────────────────────
+        function showSection(section) {
+            document.getElementById('sectionProducts').style.display = 'none';
+            document.getElementById('sectionOrders').style.display = 'none';
+            document.getElementById('navProducts').classList.remove('active');
+            document.getElementById('navOrders').classList.remove('active');
+
+            if (section === 'products') {
+                document.getElementById('sectionProducts').style.display = 'block';
+                document.getElementById('navProducts').classList.add('active');
+                document.getElementById('topbarTitle').textContent = 'Product Management';
+            } else {
+                document.getElementById('sectionOrders').style.display = 'block';
+                document.getElementById('navOrders').classList.add('active');
+                document.getElementById('topbarTitle').textContent = 'Order Management';
+            }
+        }
+
+        // ─── Add Product ──────────────────────────────────────────────────────────
         async function handleAddProduct(e) {
             e.preventDefault();
 
@@ -245,41 +387,263 @@
                 if (data.success) {
                     showToast('Product published live successfully!');
                     document.getElementById('addProductForm').reset();
-                    status.textContent = 'âœ… Product published! It is now visible on the website.';
+                    status.textContent = '✅ Product published! It is now visible on the website.';
                     status.className = 'status-msg text-success';
                 } else {
                     if (res.status === 401 || res.status === 403) {
                         logout();
-                        alert('Session expired. Please strictly login again.');
+                        alert('Session expired. Please login again.');
                     }
-                    status.textContent = 'âŒ ' + (data.message || 'Error saving product.');
+                    status.textContent = '❌ ' + (data.message || 'Error saving product.');
                     status.className = 'status-msg text-error';
                 }
             } catch (error) {
-                status.textContent = 'âŒ Server error. Could not save product.';
+                status.textContent = '❌ Server error. Could not save product.';
                 status.className = 'status-msg text-error';
                 console.error(error);
             }
 
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Publish Product Live';
-
-            setTimeout(() => {
-                if (status.textContent.includes('âœ…')) status.textContent = '';
-            }, 5000);
+            setTimeout(() => { if (status.textContent.includes('✅')) status.textContent = ''; }, 5000);
         }
 
-        function showDashboard() {
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('dashboardScreen').style.display = 'flex';
+        // ─── Orders ───────────────────────────────────────────────────────────────
+        async function loadOrders() {
+            if (!token) return;
+            const refreshBtn = document.getElementById('refreshBtn');
+            const loadingEl  = document.getElementById('ordersLoading');
+            if (refreshBtn) refreshBtn.querySelector('i').classList.add('fa-spin');
+            if (loadingEl) loadingEl.style.display = 'flex';
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/orders`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'bypass-tunnel-reminder': 'true' }
+                });
+                if (res.status === 401 || res.status === 403) { logout(); return; }
+                const data = await res.json();
+                allOrders = data.orders || [];
+                updateStats();
+                renderOrdersTable();
+            } catch (err) {
+                console.error('[loadOrders]', err);
+                showToast('Could not fetch orders. Is the server running?', 'error');
+            } finally {
+                if (refreshBtn) refreshBtn.querySelector('i').classList.remove('fa-spin');
+                if (loadingEl)  loadingEl.style.display = 'none';
+            }
         }
 
-        function logout() {
-            token = null;
-            localStorage.removeItem('asi_admin_token');
-            document.getElementById('loginScreen').style.display = 'flex';
-            document.getElementById('dashboardScreen').style.display = 'none';
-            document.getElementById('adminPassword').value = '';
+        function updateStats() {
+            const total     = allOrders.length;
+            const pending   = allOrders.filter(o => o.status === 'Pending').length;
+            const delivered = allOrders.filter(o => o.status === 'Delivered').length;
+            const revenue   = allOrders.reduce((s, o) => s + (o.totalAmount || 0), 0);
+
+            document.getElementById('statTotal').textContent     = total;
+            document.getElementById('statPending').textContent   = pending;
+            document.getElementById('statDelivered').textContent = delivered;
+            document.getElementById('statRevenue').textContent   = '₹' + revenue.toLocaleString('en-IN');
+
+            const badge = document.getElementById('pendingBadge');
+            badge.textContent  = pending;
+            badge.style.display = pending > 0 ? 'inline-flex' : 'none';
+        }
+
+        function filterOrders(status) {
+            currentFilter = status;
+            document.querySelectorAll('.filter-pill').forEach(p => {
+                p.classList.toggle('active', p.dataset.status === status);
+            });
+            renderOrdersTable();
+        }
+
+        function renderOrdersTable() {
+            const search  = (document.getElementById('orderSearch')?.value || '').toLowerCase();
+            let filtered = allOrders;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(o => o.status === currentFilter);
+            }
+
+            if (search) {
+                filtered = filtered.filter(o =>
+                    (o.customer?.name   || '').toLowerCase().includes(search) ||
+                    (o.customer?.mobile || '').includes(search) ||
+                    (o.productName      || '').toLowerCase().includes(search) ||
+                    (o.id               || '').toLowerCase().includes(search)
+                );
+            }
+
+            const emptyEl = document.getElementById('ordersEmpty');
+            const tableWrap = document.getElementById('tableWrap');
+
+            if (filtered.length === 0) {
+                emptyEl.style.display  = 'flex';
+                tableWrap.style.display = 'none';
+                return;
+            }
+
+            emptyEl.style.display  = 'none';
+            tableWrap.style.display = 'block';
+
+            const tbody = document.getElementById('ordersBody');
+            tbody.innerHTML = filtered.map(o => {
+                const date  = new Date(o.placedAt).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+                const time  = new Date(o.placedAt).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
+                const amount = o.totalAmount ? '₹' + Number(o.totalAmount).toLocaleString('en-IN') : (o.price ? '₹' + Number(o.price).toLocaleString('en-IN') : '—');
+                const statusClass = o.status.toLowerCase().replace(' ', '-');
+                const name   = o.customer?.name   || '—';
+                const mobile = o.customer?.mobile || '—';
+                const addr   = o.customer?.address || '—';
+                const product = (o.productName || 'General Enquiry').substring(0, 35) + ((o.productName || '').length > 35 ? '…' : '');
+
+                return `<tr>
+                    <td><span class="order-id-cell" title="${o.id}">${o.id.substring(0, 16)}</span></td>
+                    <td><div class="date-cell"><span>${date}</span><span class="time-sub">${time}</span></div></td>
+                    <td><div class="customer-cell"><strong>${name}</strong>${o.customer?.company ? '<br><small class="text-muted">' + o.customer.company + '</small>' : ''}</div></td>
+                    <td><a href="tel:${mobile}" class="phone-link"><i class="fas fa-phone-alt"></i> ${mobile}</a></td>
+                    <td><span class="product-cell" title="${o.productName || ''}">${product}</span></td>
+                    <td class="qty-cell">${o.qty || 1}</td>
+                    <td class="amount-cell">${amount}</td>
+                    <td><span class="address-cell" title="${addr}">${addr.substring(0, 30)}${addr.length > 30 ? '…' : ''}</span></td>
+                    <td>
+                        <select class="status-select status-${statusClass}" onchange="updateOrderStatus('${o.id}', this.value, this)">
+                            <option value="Pending"   ${o.status==='Pending'   ? 'selected':''}>⏳ Pending</option>
+                            <option value="Confirmed" ${o.status==='Confirmed' ? 'selected':''}>✅ Confirmed</option>
+                            <option value="Shipped"   ${o.status==='Shipped'   ? 'selected':''}>🚚 Shipped</option>
+                            <option value="Delivered" ${o.status==='Delivered' ? 'selected':''}>📦 Delivered</option>
+                            <option value="Cancelled" ${o.status==='Cancelled' ? 'selected':''}>❌ Cancelled</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="act-btn view-btn" onclick="viewOrderDetail('${o.id}')" title="View Details"><i class="fas fa-eye"></i></button>
+                            <button class="act-btn wa-btn" onclick="whatsappOrder('${o.id}')" title="WhatsApp Customer"><i class="fab fa-whatsapp"></i></button>
+                            <button class="act-btn del-btn" onclick="deleteOrder('${o.id}', this)" title="Delete Order"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        async function updateOrderStatus(orderId, newStatus, selectEl) {
+            const originalVal = selectEl.dataset.prev || selectEl.value;
+            selectEl.dataset.prev = newStatus;
+            selectEl.disabled = true;
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/orders/${orderId}/status`, {
+                    method:  'PATCH',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'bypass-tunnel-reminder': 'true' },
+                    body:    JSON.stringify({ status: newStatus })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Update local state
+                    const order = allOrders.find(o => o.id === orderId);
+                    if (order) order.status = newStatus;
+                    updateStats();
+                    // Update select class
+                    selectEl.className = 'status-select status-' + newStatus.toLowerCase().replace(' ', '-');
+                    showToast(`Order ${orderId.substring(0,12)}… → ${newStatus}`);
+                } else {
+                    showToast(data.message || 'Failed to update status.', 'error');
+                }
+            } catch (err) {
+                showToast('Server error. Could not update status.', 'error');
+            }
+            selectEl.disabled = false;
+        }
+
+        async function deleteOrder(orderId, btn) {
+            if (!confirm(`Delete order ${orderId}?\n\nThis cannot be undone.`)) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/orders/${orderId}`, {
+                    method:  'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'bypass-tunnel-reminder': 'true' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    allOrders = allOrders.filter(o => o.id !== orderId);
+                    updateStats();
+                    renderOrdersTable();
+                    showToast('Order deleted.');
+                } else {
+                    showToast(data.message || 'Failed to delete order.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-trash"></i>';
+                }
+            } catch (err) {
+                showToast('Server error. Could not delete order.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+            }
+        }
+
+        function viewOrderDetail(orderId) {
+            const o = allOrders.find(x => x.id === orderId);
+            if (!o) return;
+
+            const date = new Date(o.placedAt).toLocaleString('en-IN');
+            const cartItemsHtml = o.cartItems && o.cartItems.length
+                ? `<div class="detail-section"><h4><i class="fas fa-list"></i> Cart Items</h4>
+                    <table class="detail-cart-table">
+                        <thead><tr><th>Product</th><th>Qty</th><th>Price</th></tr></thead>
+                        <tbody>${o.cartItems.map(i => `<tr><td>${i.name||'—'}</td><td>${i.qty||1}</td><td>₹${Number(i.price||0).toLocaleString('en-IN')}</td></tr>`).join('')}</tbody>
+                    </table></div>`
+                : '';
+
+            document.getElementById('orderDetailContent').innerHTML = `
+                <div class="detail-grid">
+                    <div class="detail-section">
+                        <h4><i class="fas fa-hashtag"></i> Order Info</h4>
+                        <table class="detail-table">
+                            <tr><td>Order ID</td><td><strong>${o.id}</strong></td></tr>
+                            <tr><td>Placed At</td><td>${date}</td></tr>
+                            <tr><td>Status</td><td><span class="status-badge status-${(o.status||'').toLowerCase()}">${o.status}</span></td></tr>
+                            <tr><td>Product</td><td>${o.productName || '—'}</td></tr>
+                            <tr><td>Quantity</td><td>${o.qty || 1}</td></tr>
+                            <tr><td>Unit Price</td><td>₹${Number(o.price||0).toLocaleString('en-IN')}</td></tr>
+                            <tr><td>Total Amount</td><td><strong>₹${Number(o.totalAmount||0).toLocaleString('en-IN')}</strong></td></tr>
+                        </table>
+                    </div>
+                    <div class="detail-section">
+                        <h4><i class="fas fa-user"></i> Customer Info</h4>
+                        <table class="detail-table">
+                            <tr><td>Name</td><td><strong>${o.customer?.name||'—'}</strong></td></tr>
+                            <tr><td>Company</td><td>${o.customer?.company||'—'}</td></tr>
+                            <tr><td>Mobile</td><td><a href="tel:${o.customer?.mobile}">${o.customer?.mobile||'—'}</a></td></tr>
+                            <tr><td>Email</td><td>${o.customer?.email||'—'}</td></tr>
+                            <tr><td>GST</td><td>${o.customer?.gst||'—'}</td></tr>
+                            <tr><td>Address</td><td>${o.customer?.address||'—'}</td></tr>
+                        </table>
+                        ${o.notes ? `<div class="notes-box"><strong>Notes:</strong> ${o.notes}</div>` : ''}
+                    </div>
+                </div>
+                ${cartItemsHtml}
+            `;
+
+            document.getElementById('orderDetailOverlay').classList.add('active');
+        }
+
+        function closeOrderDetail() {
+            document.getElementById('orderDetailOverlay').classList.remove('active');
+        }
+
+        function whatsappOrder(orderId) {
+            const o = allOrders.find(x => x.id === orderId);
+            if (!o) return;
+            const mobile = (o.customer?.mobile || '').replace(/[^0-9]/g, '');
+            const msg = encodeURIComponent(
+                `Hello ${o.customer?.name || 'Customer'},\n\nThank you for your order at Ahuja Sales India!\n\n` +
+                `Order ID: ${o.id}\nProduct: ${o.productName || '—'}\nQty: ${o.qty || 1}\n\n` +
+                `We will confirm your order shortly.\n\nRegards,\nAhuja Sales India\n9810072048`
+            );
+            window.open(`https://wa.me/91${mobile}?text=${msg}`, '_blank');
         }
     </script>
 </body>

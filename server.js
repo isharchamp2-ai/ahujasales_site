@@ -1,17 +1,20 @@
 /**
- * OTP Proxy Server — Ahuja Sales India
- * Handles SMS OTP via Fast2SMS. Run: node otp-server.js
+ * Backend Server — Ahuja Sales India
+ * Handles: OTP via Fast2SMS, Admin Panel, Order Management
+ * Run: node server.js
  */
 
 require('dotenv').config();
 const express = require('express');
-const cors = require('cors');
-const crypto = require('crypto');
+const cors    = require('cors');
+const path    = require('path');
+const crypto  = require('crypto');
 // ─── GitHub API Helpers ────────────────────────────────────────────────────────
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
 const GITHUB_REPO  = process.env.GITHUB_REPO  || 'isharchamp2-ai/ahujasales_site';
 const GITHUB_BRANCH = process.env.GITHUB_BRANCH || 'main';
 const ADMIN_FILE   = 'admin_products.json';
+const ORDERS_FILE  = 'orders.json';
 
 async function getGitHubFile(path) {
   const url = `https://api.github.com/repos/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
@@ -36,6 +39,8 @@ const PORT = process.env.PORT || 3001;
 // ─── Middleware ────────────────────────────────────────────────────────────────
 app.use(express.json());
 app.use(cors());
+// Serve static site files (index.html, admin.html, etc.)
+app.use(express.static(path.join(__dirname)));
 
 
 // ─── In-memory store  { mobile → { otp, expiry, attempts, lastSent } } ────────
@@ -285,15 +290,128 @@ app.post('/api/admin/products', requireAdminToken, async (req, res) => {
 });
 
 
+// ==========================================
+// ORDER MANAGEMENT ROUTES
+// ==========================================
+
+// POST /api/orders — customer places an order (public)
+app.post('/api/orders', async (req, res) => {
+  try {
+    const body = req.body;
+    if (!body.customer || !body.customer.name || !body.customer.mobile) {
+      return res.status(400).json({ success: false, message: 'Customer name and mobile are required.' });
+    }
+
+    const { content: orders, sha } = await getGitHubFile(ORDERS_FILE);
+
+    const orderId = 'ASI-' + Date.now().toString().slice(-8) + '-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+
+    const newOrder = {
+      id:          orderId,
+      productId:   body.productId   || null,
+      productName: body.productName  || 'General Enquiry',
+      category:    body.category     || 'general',
+      qty:         parseInt(body.qty) || 1,
+      price:       parseFloat(body.price) || 0,
+      totalAmount: (parseFloat(body.price) || 0) * (parseInt(body.qty) || 1),
+      customer: {
+        name:    body.customer.name,
+        mobile:  body.customer.mobile,
+        company: body.customer.company || '',
+        email:   body.customer.email   || '',
+        gst:     body.customer.gst     || '',
+        address: body.customer.address || ''
+      },
+      notes:     body.notes    || '',
+      flow:      body.flow     || 'buynow',
+      cartItems: body.cartItems || [],
+      status:    'Pending',
+      placedAt:  new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const ordersArr = Array.isArray(orders) ? orders : [];
+    ordersArr.unshift(newOrder); // newest first
+    await putGitHubFile(ORDERS_FILE, ordersArr, sha, `New order: ${orderId}`);
+
+    console.log(`[ORDER] New order saved: ${orderId} from ${newOrder.customer.name}`);
+    return res.json({ success: true, orderId, message: 'Order placed successfully!' });
+
+  } catch (err) {
+    console.error('[ORDER POST]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to save order: ' + err.message });
+  }
+});
+
+// GET /api/admin/orders — admin fetches all orders (protected)
+app.get('/api/admin/orders', requireAdminToken, async (req, res) => {
+  try {
+    const { content } = await getGitHubFile(ORDERS_FILE);
+    const orders = Array.isArray(content) ? content : [];
+    return res.json({ success: true, orders });
+  } catch (err) {
+    console.error('[ORDERS GET]', err.message);
+    return res.json({ success: true, orders: [] });
+  }
+});
+
+// PATCH /api/admin/orders/:id/status — admin updates order status (protected)
+app.patch('/api/admin/orders/:id/status', requireAdminToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const VALID_STATUSES = ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled'];
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status value.' });
+    }
+
+    const { content: orders, sha } = await getGitHubFile(ORDERS_FILE);
+    const ordersArr = Array.isArray(orders) ? orders : [];
+    const idx = ordersArr.findIndex(o => o.id === id);
+    if (idx === -1) return res.status(404).json({ success: false, message: 'Order not found.' });
+
+    ordersArr[idx].status    = status;
+    ordersArr[idx].updatedAt = new Date().toISOString();
+    await putGitHubFile(ORDERS_FILE, ordersArr, sha, `Update order ${id} → ${status}`);
+
+    console.log(`[ORDER] Status updated: ${id} → ${status}`);
+    return res.json({ success: true, message: `Order status updated to ${status}.` });
+  } catch (err) {
+    console.error('[ORDERS PATCH]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to update order: ' + err.message });
+  }
+});
+
+// DELETE /api/admin/orders/:id — admin deletes an order (protected)
+app.delete('/api/admin/orders/:id', requireAdminToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content: orders, sha } = await getGitHubFile(ORDERS_FILE);
+    const ordersArr = Array.isArray(orders) ? orders : [];
+    const filtered  = ordersArr.filter(o => o.id !== id);
+    if (filtered.length === ordersArr.length) {
+      return res.status(404).json({ success: false, message: 'Order not found.' });
+    }
+    await putGitHubFile(ORDERS_FILE, filtered, sha, `Delete order: ${id}`);
+    console.log(`[ORDER] Deleted: ${id}`);
+    return res.json({ success: true, message: 'Order deleted.' });
+  } catch (err) {
+    console.error('[ORDERS DELETE]', err.message);
+    return res.status(500).json({ success: false, message: 'Failed to delete order: ' + err.message });
+  }
+});
+
+// ==========================================
 // Start Background Cleanup for OTPs
 setInterval(cleanupOtps, 60 * 1000); // Check every minute
 
 // ─── Start ─────────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
-  console.log(`[SERVER] Running heavily on port ${PORT}`);
-  console.log(`[SERVER] 🚀 API is ready for OTP and Admin Panel.`);
-  console.log(`    Send OTP:   POST http://localhost:${PORT}/api/send-otp`);
-  console.log(`    Verify OTP: POST http://localhost:${PORT}/api/verify-otp\n`);
+  console.log(`\n[SERVER] 🚀 Ahuja Sales India Backend running on port ${PORT}`);
+  console.log(`[SERVER]    OTP:    POST /api/send-otp | POST /api/verify-otp`);
+  console.log(`[SERVER]    Orders: POST /api/orders`);
+  console.log(`[SERVER]    Admin:  GET/PATCH/DELETE /api/admin/orders, POST /api/admin/products`);
+  console.log(`[SERVER]    Site:   http://localhost:${PORT}\n`);
   if (!process.env.FAST2SMS_API_KEY) {
     console.warn('⚠️  WARNING: FAST2SMS_API_KEY is not set in .env! Add it before testing.\n');
   }
