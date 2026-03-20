@@ -151,10 +151,24 @@ app.post('/api/send-otp', async (req, res) => {
       windowStart: record.windowStart
     });
 
-    // Send SMS
-    await sendViaSMS(mobile, otp);
+    // ── LOCAL DEV: always log OTP to terminal ──────────────────────────────
+    const isLocal = (process.env.PORT || '3001') === '3001';
+    if (isLocal) {
+      console.log(`\n[OTP] ✅ DEV MODE — OTP for ${mobile}: *** ${otp} ***\n`);
+    }
+    // ──────────────────────────────────────────────────────────────────────
 
-    console.log(`[OTP] Sent to ${mobile.slice(0, 3)}XXXXXXX${mobile.slice(-2)}`);
+    // Send SMS (non-fatal locally — if SMS fails, OTP is still in terminal)
+    try {
+      await sendViaSMS(mobile, otp);
+      console.log(`[OTP] SMS sent to ${mobile.slice(0, 3)}XXXXXXX${mobile.slice(-2)}`);
+    } catch (smsErr) {
+      if (isLocal) {
+        console.warn(`[OTP] SMS failed (${smsErr.message}) — use the OTP printed above for local testing.`);
+      } else {
+        throw smsErr; // re-throw on production so the outer catch handles it
+      }
+    }
     return res.json({ success: true, message: 'OTP sent successfully!' });
 
   } catch (err) {
