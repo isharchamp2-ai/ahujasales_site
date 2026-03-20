@@ -49057,7 +49057,7 @@ document.addEventListener('DOMContentLoaded', () => {
     buildCategoryGrids();
     buildNavCategories();
     buildMegaMenu();
-    renderAllProductSections();
+    // renderAllProductSections(); // Disabled to save vertical space
     renderProducts('all');
     updateCartUI();
     setupScrollHandlers();
@@ -49133,13 +49133,47 @@ function renderProducts(categoryId = 'all') {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
 
+    const searchTerm = document.getElementById('searchInput');
+    const isSearching = searchTerm && searchTerm.value.trim() !== '';
+
+    // ACCORDION VIEW FOR "ALL" (No Search)
+    if (categoryId === 'all' && !isSearching) {
+        document.getElementById('productCount').textContent = `(${products.length} items)`;
+        grid.style.display = 'block'; // override grid to block for accordion stacking
+        
+        let html = '<div class="accordion-container" style="display:flex; flex-direction:column; gap:12px;">';
+        categories.forEach(cat => {
+            const catProducts = products.filter(p => p.cat === cat.id);
+            if (catProducts.length === 0) return;
+            html += `
+            <div class="accordion-item" style="border: 1px solid var(--border); border-radius: var(--radius); background: #fff; box-shadow: var(--shadow-sm); overflow: hidden;">
+                <button class="accordion-header" onclick="toggleAcc('acc-${cat.id}')" style="width: 100%; text-align: left; padding: 18px 24px; background: #fff; border: none; font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s;">
+                    <span style="display:flex; align-items:center; gap:10px;">
+                        <span style="font-size:1.4rem;">${cat.icon}</span> ${cat.label} 
+                        <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600; margin-left: 5px; background: var(--bg); padding: 2px 8px; border-radius: 12px;">${catProducts.length} items</span>
+                    </span>
+                    <i class="fas fa-chevron-down acc-icon" id="icon-acc-${cat.id}" style="transition: transform 0.3s ease; color: var(--primary);"></i>
+                </button>
+                <div class="accordion-body" id="acc-${cat.id}" style="display: none; padding: 24px; border-top: 1px solid var(--border); background: #f8fafc;">
+                    <div class="product-grid mini-grid">
+                        ${catProducts.map(productCardHTML).join('')}
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+        grid.innerHTML = html;
+        return;
+    }
+
+    // FLAT GRID VIEW (For specific category or Search)
+    grid.style.display = 'grid'; // restore grid layout
     let filtered = products;
     if (categoryId !== 'all') {
         filtered = products.filter(p => p.cat === categoryId);
     }
 
-    const searchTerm = document.getElementById('searchInput');
-    if (searchTerm && searchTerm.value.trim() !== '') {
+    if (isSearching) {
         const q = searchTerm.value.toLowerCase();
         filtered = filtered.filter(p =>
             p.name.toLowerCase().includes(q) ||
@@ -49171,6 +49205,23 @@ function renderProducts(categoryId = 'all') {
 
     if (filtered.length > maxItems) {
         grid.innerHTML += `<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text-muted)">Showing top ${maxItems} results. Use search or filters to narrow down.</div>`;
+    }
+}
+
+window.toggleAcc = function(id) {
+    const body = document.getElementById(id);
+    const icon = document.getElementById('icon-' + id);
+    if (!body || !icon) return;
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        icon.style.transform = 'rotate(180deg)';
+        const accHeaderBtn = icon.parentElement;
+        accHeaderBtn.style.background = '#f1f5f9';
+    } else {
+        body.style.display = 'none';
+        icon.style.transform = 'rotate(0deg)';
+        const accHeaderBtn = icon.parentElement;
+        accHeaderBtn.style.background = '#fff';
     }
 }
 
