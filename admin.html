@@ -44,7 +44,8 @@
                 <h3>Admin</h3>
             </div>
             <ul class="nav-menu">
-                <li id="navProducts" onclick="showSection('products')"><i class="fas fa-box-open"></i> Add Products</li>
+                <li id="navProducts" onclick="showSection('products')"><i class="fas fa-plus-circle"></i> Add Product</li>
+                <li id="navManage" onclick="showSection('manage')"><i class="fas fa-boxes"></i> Manage Products</li>
                 <li id="navOrders" onclick="showSection('orders')">
                     <i class="fas fa-shopping-bag"></i> Orders
                     <span class="nav-badge" id="pendingBadge" style="display:none">0</span>
@@ -106,13 +107,22 @@
                                     <label>Selling Price (₹) *</label>
                                     <input type="number" id="pPrice" placeholder="0.00" min="0" required>
                                 </div>
+
+                                <div class="input-group-col">
+                                    <label>Available Quantity (Stock)</label>
+                                    <input type="number" id="pQty" placeholder="0" min="0" value="0">
+                                </div>
                             </div>
 
                             <div class="input-group-col">
-                                <label>Product Image Link</label>
+                                <label>Product Image URL</label>
                                 <input type="url" id="pImg"
-                                    placeholder="https://test.ahujasalesindia.com/images/products/...jpg">
+                                    placeholder="https://test.ahujasalesindia.com/images/products/...jpg"
+                                    oninput="previewAddImage(this.value)">
                                 <small>Leave empty to use the default company logo placeholder.</small>
+                                <div id="addImgPreviewWrap" style="display:none;margin-top:8px">
+                                    <img id="addImgPreview" src="" alt="Preview" class="img-preview">
+                                </div>
                             </div>
 
                             <div class="input-group-col">
@@ -132,6 +142,106 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+
+                <!-- ===== MANAGE PRODUCTS SECTION ===== -->
+                <div id="sectionManage" style="display:none;">
+
+                    <!-- Toolbar -->
+                    <div class="orders-toolbar glass-card" style="margin-bottom:1rem">
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+                            <h3 style="font-size:1.1rem;color:var(--primary);display:flex;align-items:center;gap:8px;margin:0">
+                                <i class="fas fa-boxes"></i>
+                                <span>All Products</span>
+                                <span class="nav-badge" id="prodCountBadge" style="display:inline-flex;background:var(--primary)">0</span>
+                            </h3>
+                        </div>
+                        <div class="orders-search-wrap">
+                            <input type="text" id="prodSearch" placeholder="Search products…" oninput="renderProductsTable()" style="width:220px">
+                            <button class="refresh-btn" onclick="loadAdminProducts()" id="refreshProdsBtn" title="Refresh">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Products Table -->
+                    <div class="glass-card orders-table-card">
+                        <div id="prodsLoading" class="orders-loading" style="display:none;">
+                            <i class="fas fa-circle-notch fa-spin"></i> Loading products…
+                        </div>
+                        <div id="prodsEmpty" class="orders-empty" style="display:none;">
+                            <i class="fas fa-box-open"></i>
+                            <p>No products yet. Add your first product using the "Add Product" tab.</p>
+                        </div>
+                        <div class="table-wrap" id="prodsTableWrap">
+                            <table class="orders-table" id="prodsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Product Name</th>
+                                        <th>Category</th>
+                                        <th>Price (₹)</th>
+                                        <th>Quantity</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="prodsBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Edit Product Modal -->
+                <div class="order-detail-overlay" id="editProdOverlay" onclick="closeEditModal()">
+                    <div class="order-detail-modal" onclick="event.stopPropagation()" style="max-width:560px">
+                        <button class="modal-close-btn" onclick="closeEditModal()"><i class="fas fa-times"></i></button>
+                        <h3><i class="fas fa-edit"></i> Edit Product</h3>
+                        <input type="hidden" id="editProdId">
+
+                        <div class="form-grid" style="margin-bottom:0">
+                            <div class="input-group-col">
+                                <label>Product Name *</label>
+                                <input type="text" id="editProdName" placeholder="Product name" required>
+                            </div>
+                            <div class="input-group-col">
+                                <label>Category</label>
+                                <input type="text" id="editProdCat" placeholder="Category" disabled style="opacity:0.5">
+                            </div>
+                            <div class="input-group-col">
+                                <label>Selling Price (₹) *</label>
+                                <input type="number" id="editProdPrice" placeholder="0.00" min="0" required>
+                            </div>
+                            <div class="input-group-col">
+                                <label>Available Quantity *</label>
+                                <input type="number" id="editProdQty" placeholder="0" min="0" required>
+                            </div>
+                        </div>
+
+                        <div class="input-group-col" style="margin-top:1rem">
+                            <label>Product Image URL</label>
+                            <input type="url" id="editProdImg" placeholder="https://..." oninput="updateEditPreview()">
+                            <div style="margin-top:10px;text-align:center;">
+                                <img id="editImgPreview" src="" alt="Preview" class="img-preview" style="max-height:140px">
+                            </div>
+                        </div>
+
+                        <div class="input-group-col" style="margin-top:1rem">
+                            <label>Description</label>
+                            <textarea id="editProdDesc" rows="3" placeholder="Product description…"></textarea>
+                        </div>
+
+                        <div class="form-actions" style="margin-top:1.5rem">
+                            <p id="editFormStatus" class="status-msg"></p>
+                            <div style="display:flex;gap:10px">
+                                <button type="button" class="btn-glow" style="background:rgba(255,255,255,0.07);box-shadow:none;color:var(--text-muted)" onclick="closeEditModal()">Cancel</button>
+                                <button type="button" class="btn-glow success" id="saveEditBtn" onclick="saveProductEdit()">
+                                    <i class="fas fa-save"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -315,9 +425,9 @@
         function showDashboard() {
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('dashboardScreen').style.display = 'flex';
-            showSection('orders'); // default to orders view
+            showSection('manage'); // default: show all products
             loadOrders();
-            // Auto-refresh every 30s
+            // Auto-refresh orders every 30s
             clearInterval(autoRefreshTimer);
             autoRefreshTimer = setInterval(loadOrders, 30000);
         }
@@ -334,18 +444,35 @@
         // ─── Section Switching ────────────────────────────────────────────────────
         function showSection(section) {
             document.getElementById('sectionProducts').style.display = 'none';
-            document.getElementById('sectionOrders').style.display = 'none';
-            document.getElementById('navProducts').classList.remove('active');
-            document.getElementById('navOrders').classList.remove('active');
+            document.getElementById('sectionManage').style.display  = 'none';
+            document.getElementById('sectionOrders').style.display  = 'none';
+            ['navProducts','navManage','navOrders'].forEach(id => document.getElementById(id).classList.remove('active'));
 
             if (section === 'products') {
                 document.getElementById('sectionProducts').style.display = 'block';
                 document.getElementById('navProducts').classList.add('active');
-                document.getElementById('topbarTitle').textContent = 'Product Management';
+                document.getElementById('topbarTitle').textContent = 'Add Product';
+            } else if (section === 'manage') {
+                document.getElementById('sectionManage').style.display = 'block';
+                document.getElementById('navManage').classList.add('active');
+                document.getElementById('topbarTitle').textContent = 'Manage Products';
+                loadAdminProducts();
             } else {
                 document.getElementById('sectionOrders').style.display = 'block';
                 document.getElementById('navOrders').classList.add('active');
                 document.getElementById('topbarTitle').textContent = 'Order Management';
+            }
+        }
+
+        // ─── Add Product Image Preview ────────────────────────────────────────────
+        function previewAddImage(url) {
+            const wrap = document.getElementById('addImgPreviewWrap');
+            const img  = document.getElementById('addImgPreview');
+            if (url && url.startsWith('http')) {
+                img.src = url;
+                wrap.style.display = 'block';
+            } else {
+                wrap.style.display = 'none';
             }
         }
 
@@ -358,6 +485,7 @@
                 Model: document.getElementById('pModel').value,
                 Size: document.getElementById('pSize').value,
                 SellingRate: parseFloat(document.getElementById('pPrice').value),
+                Quantity: parseInt(document.getElementById('pQty').value) || 0,
                 PicName: document.getElementById('pImg').value,
                 Description: document.getElementById('pDesc').value,
                 Specification: document.getElementById('pSpec').value
@@ -406,6 +534,225 @@
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-cloud-upload-alt"></i> Publish Product Live';
             setTimeout(() => { if (status.textContent.includes('✅')) status.textContent = ''; }, 5000);
+        }
+
+        // ─── Manage Products ──────────────────────────────────────────────────────
+        let allAdminProducts = [];
+
+        async function loadAdminProducts() {
+            if (!token) return;
+            const btn = document.getElementById('refreshProdsBtn');
+            const loading = document.getElementById('prodsLoading');
+            if (btn) btn.querySelector('i').classList.add('fa-spin');
+            if (loading) loading.style.display = 'flex';
+
+            try {
+                // 1. Fetch overrides (additions/edits/deletions) from GitHub via backend
+                const res = await fetch(`${BACKEND_URL}/api/admin/products`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'bypass-tunnel-reminder': 'true' }
+                });
+                if (res.status === 401 || res.status === 403) { logout(); return; }
+                const data = await res.json();
+                const overrides = data.products || [];
+
+                // 2. Fetch the hardcoded 4,500 products directly from the live script.js file
+                let baseProducts = [];
+                try {
+                    const scriptRes = await fetch('script.js');
+                    const text = await scriptRes.text();
+                    const startMarker = "const products = [";
+                    const startIdx = text.indexOf(startMarker);
+                    if (startIdx !== -1) {
+                        const endMarker = "];";
+                        const endIdx = text.indexOf(endMarker, startIdx);
+                        if (endIdx !== -1) {
+                            const arrayStr = text.substring(startIdx + "const products = ".length, endIdx + 1);
+                            baseProducts = eval('(' + arrayStr + ')');
+                        }
+                    }
+                } catch(err) {
+                    console.error("Failed to parse base products from script.js", err);
+                }
+
+                // 3. Merge: Overrides override base products. New products are appended. Deletions are removed.
+                let mergedMap = new Map();
+                baseProducts.forEach(p => mergedMap.set(String(p.id), p));
+                overrides.forEach(p => {
+                    if (p.deleted) {
+                        mergedMap.delete(String(p.id));
+                    } else {
+                        mergedMap.set(String(p.id), p);
+                    }
+                });
+                
+                // Sort with newest on top
+                allAdminProducts = Array.from(mergedMap.values()).reverse();
+                renderProductsTable();
+            } catch (err) {
+                console.error('[loadAdminProducts]', err);
+                showToast('Could not fetch products.', 'error');
+            } finally {
+                if (btn) btn.querySelector('i').classList.remove('fa-spin');
+                if (loading) loading.style.display = 'none';
+            }
+        }
+
+        function renderProductsTable() {
+            const search = (document.getElementById('prodSearch')?.value || '').toLowerCase();
+            let list = allAdminProducts;
+            if (search) {
+                list = list.filter(p =>
+                    (p.name || '').toLowerCase().includes(search) ||
+                    (p.cat  || '').toLowerCase().includes(search)
+                );
+            }
+
+            const badge = document.getElementById('prodCountBadge');
+            if (badge) badge.textContent = allAdminProducts.length;
+
+            const empty = document.getElementById('prodsEmpty');
+            const wrap  = document.getElementById('prodsTableWrap');
+
+            if (list.length === 0) {
+                empty.style.display = 'flex';
+                wrap.style.display  = 'none';
+                return;
+            }
+            empty.style.display = 'none';
+            wrap.style.display  = 'block';
+
+            const fallback = 'https://test.ahujasalesindia.com/Images/logo.png';
+
+            document.getElementById('prodsBody').innerHTML = list.map(p => {
+                const qty = p.quantity ?? '—';
+                const inStock = p.inStock || (typeof p.quantity === 'number' && p.quantity > 0);
+                const stockBadge = inStock
+                    ? `<span class="qty-badge qty-in">${qty} in stock</span>`
+                    : `<span class="qty-badge qty-out">${qty === 0 || qty === '0' ? 'Out' : qty} of stock</span>`;
+                const price = p.price ? '₹' + Number(p.price).toLocaleString('en-IN') : '—';
+                const catLabel = (p.cat || '').replace(/-/g, ' ');
+                return `<tr>
+                    <td><img src="${p.img || fallback}" class="prod-thumb" onerror="this.src='${fallback}'" alt=""></td>
+                    <td><div class="prod-name-cell">${p.name || '—'}</div><div class="prod-id-cell">${p.id || ''}</div></td>
+                    <td><span class="prod-cat-cell">${catLabel}</span></td>
+                    <td class="amount-cell">${price}</td>
+                    <td>${stockBadge}</td>
+                    <td>${inStock
+                        ? '<span class="status-badge status-delivered">In Stock</span>'
+                        : '<span class="status-badge status-cancelled">Out of Stock</span>'}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="act-btn view-btn" onclick="openEditModal('${p.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="act-btn del-btn" onclick="deleteProduct('${p.id}', this)" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function openEditModal(productId) {
+            const p = allAdminProducts.find(x => x.id === productId);
+            if (!p) return;
+            document.getElementById('editProdId').value    = p.id;
+            document.getElementById('editProdName').value  = p.name || '';
+            document.getElementById('editProdCat').value   = (p.cat || '').replace(/-/g, ' ');
+            document.getElementById('editProdPrice').value = p.price || 0;
+            document.getElementById('editProdQty').value   = p.quantity ?? 0;
+            document.getElementById('editProdImg').value   = p.img || '';
+            document.getElementById('editProdDesc').value  = p.desc || '';
+            document.getElementById('editFormStatus').textContent = '';
+            updateEditPreview();
+            document.getElementById('editProdOverlay').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editProdOverlay').classList.remove('active');
+        }
+
+        function updateEditPreview() {
+            const url = document.getElementById('editProdImg').value;
+            const img = document.getElementById('editImgPreview');
+            img.src = url || 'https://test.ahujasalesindia.com/Images/logo.png';
+        }
+
+        async function saveProductEdit() {
+            const id    = document.getElementById('editProdId').value;
+            const name  = document.getElementById('editProdName').value.trim();
+            const price = parseFloat(document.getElementById('editProdPrice').value);
+            const qty   = parseInt(document.getElementById('editProdQty').value);
+            const img   = document.getElementById('editProdImg').value.trim();
+            const desc  = document.getElementById('editProdDesc').value.trim();
+
+            if (!name || isNaN(price) || isNaN(qty)) {
+                document.getElementById('editFormStatus').textContent = '❌ Name, price and quantity are required.';
+                document.getElementById('editFormStatus').className = 'status-msg text-error';
+                return;
+            }
+
+            const btn    = document.getElementById('saveEditBtn');
+            const status = document.getElementById('editFormStatus');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Saving...';
+            status.textContent = 'Saving changes to GitHub…';
+            status.className = 'status-msg text-accent';
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/products/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'bypass-tunnel-reminder': 'true'
+                    },
+                    body: JSON.stringify({ name, price, quantity: qty, img, desc })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    // Update local state
+                    const idx = allAdminProducts.findIndex(p => p.id === id);
+                    if (idx !== -1) allAdminProducts[idx] = data.item;
+                    renderProductsTable();
+                    showToast('Product updated successfully!');
+                    closeEditModal();
+                } else {
+                    status.textContent = '❌ ' + (data.message || 'Failed to save.');
+                    status.className = 'status-msg text-error';
+                }
+            } catch (err) {
+                status.textContent = '❌ Server error. Could not save.';
+                status.className = 'status-msg text-error';
+                console.error(err);
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+        }
+
+        async function deleteProduct(productId, btn) {
+            if (!confirm(`Delete this product?\n\nThis cannot be undone.`)) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
+
+            try {
+                const res = await fetch(`${BACKEND_URL}/api/admin/products/${productId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}`, 'bypass-tunnel-reminder': 'true' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    allAdminProducts = allAdminProducts.filter(p => p.id !== productId);
+                    renderProductsTable();
+                    showToast('Product deleted.');
+                } else {
+                    showToast(data.message || 'Failed to delete product.', 'error');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i class="fas fa-trash"></i>';
+                }
+            } catch (err) {
+                showToast('Server error. Could not delete product.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-trash"></i>';
+            }
         }
 
         // ─── Orders ───────────────────────────────────────────────────────────────

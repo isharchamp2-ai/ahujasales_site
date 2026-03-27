@@ -282,12 +282,13 @@ app.post('/api/admin/products', requireAdminToken, async (req, res) => {
       desc:        newProduct.Description  || '',
       spec:        newProduct.Specification || '',
       price:       parseFloat(newProduct.SellingRate) || 0,
+      quantity:    parseInt(newProduct.Quantity) || 0,
       img:         newProduct.PicName
                      ? (newProduct.PicName.startsWith('http') ? newProduct.PicName : IMG_BASE + newProduct.PicName)
                      : IMG_BASE + '/Images/logo.png',
       rating:      4.8,
       reviews:     Math.floor(Math.random() * 20 + 5),
-      inStock:     true,
+      inStock:     (parseInt(newProduct.Quantity) || 0) > 0,
       addedAt:     new Date().toISOString()
     };
 
@@ -303,6 +304,86 @@ app.post('/api/admin/products', requireAdminToken, async (req, res) => {
   }
 });
 
+
+// GET admin products (protected — for admin dashboard management)
+app.get('/api/admin/products', requireAdminToken, async (req, res) => {
+  try {
+    const { content } = await getGitHubFile(ADMIN_FILE);
+    res.json({ success: true, products: Array.isArray(content) ? content : [] });
+  } catch (err) {
+    console.error('[Admin Products GET protected]', err.message);
+    res.json({ success: true, products: [] });
+  }
+});
+
+// PUT /api/admin/products/:id — update a product (protected)
+app.put('/api/admin/products/:id', requireAdminToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const { content: products, sha } = await getGitHubFile(ADMIN_FILE);
+    const arr = Array.isArray(products) ? products : [];
+    let idx = arr.findIndex(p => String(p.id) === String(id));
+    
+    // If not found in overrides (e.g. hardcoded script.js product), push a new override entry
+    if (idx === -1) {
+        idx = arr.length;
+        arr.push({ id });
+    }
+
+    const IMG_BASE = 'https://test.ahujasalesindia.com';
+    // Apply updates selectively
+    if (updates.name     !== undefined) arr[idx].name     = updates.name;
+    if (updates.price    !== undefined) arr[idx].price    = parseFloat(updates.price) || 0;
+    if (updates.quantity !== undefined) {
+      arr[idx].quantity = parseInt(updates.quantity) || 0;
+      arr[idx].inStock  = arr[idx].quantity > 0;
+    }
+    if (updates.img      !== undefined) {
+      arr[idx].img = updates.img
+        ? (updates.img.startsWith('http') ? updates.img : IMG_BASE + updates.img)
+        : IMG_BASE + '/Images/logo.png';
+    }
+    if (updates.desc     !== undefined) arr[idx].desc     = updates.desc;
+    if (updates.spec     !== undefined) arr[idx].spec     = updates.spec;
+    arr[idx].updatedAt = new Date().toISOString();
+    
+    // Ensure deleted flag is removed if we are editing it back
+    if (arr[idx].deleted) delete arr[idx].deleted;
+
+    await putGitHubFile(ADMIN_FILE, arr, sha, `Update product override: ${arr[idx].name || id}`);
+    console.log(`[Admin] Product override saved: ${arr[idx].name || id}`);
+    res.json({ success: true, message: 'Product updated successfully.', item: arr[idx] });
+  } catch (err) {
+    console.error('[Admin Products PUT]', err.message);
+    res.status(500).json({ success: false, message: 'Failed to update product: ' + err.message });
+  }
+});
+
+// DELETE /api/admin/products/:id — delete a product (protected)
+app.delete('/api/admin/products/:id', requireAdminToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { content: products, sha } = await getGitHubFile(ADMIN_FILE);
+    const arr = Array.isArray(products) ? products : [];
+    
+    const idx = arr.findIndex(p => String(p.id) === String(id));
+    if (idx !== -1) {
+      // If it exists in overrides, mark it deleted (don't remove, to ensure base script.js product is also deleted)
+      arr[idx].deleted = true;
+    } else {
+      // Create a deletion override for a hardcoded product
+      arr.push({ id, deleted: true });
+    }
+
+    await putGitHubFile(ADMIN_FILE, arr, sha, `Delete product override: ${id}`);
+    console.log(`[Admin] Product override (deleted) saved: ${id}`);
+    res.json({ success: true, message: 'Product deleted.' });
+  } catch (err) {
+    console.error('[Admin Products DELETE]', err.message);
+    res.status(500).json({ success: false, message: 'Failed to delete product: ' + err.message });
+  }
+});
 
 // ==========================================
 // ORDER MANAGEMENT ROUTES

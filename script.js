@@ -49053,7 +49053,45 @@ let currentBuyProduct = null;
 // ============================================================
 // INIT
 // ============================================================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Fetch Admin Overrides to merge with the hardcoded products
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/admin-products`);
+        const data = await res.json();
+        const overrides = data.products || [];
+        
+        if (overrides.length > 0) {
+            let overrideMap = new Map(overrides.map(p => [String(p.id), p]));
+            let finalProducts = [];
+            
+            // Apply edits and deletions to existing products
+            for (let i = 0; i < products.length; i++) {
+                const p = products[i];
+                const pid = String(p.id);
+                if (overrideMap.has(pid)) {
+                    const over = overrideMap.get(pid);
+                    if (!over.deleted) finalProducts.push(over);
+                    overrideMap.delete(pid); // mark as processed
+                } else {
+                    finalProducts.push(p);
+                }
+            }
+            
+            // Unprocessed overrides are brand new products; add them to the top
+            const newProducts = Array.from(overrideMap.values()).filter(p => !p.deleted).reverse();
+            finalProducts = [...newProducts, ...finalProducts];
+            
+            // Swap out the constant array contents safely
+            products.length = 0;
+            for (let i = 0; i < finalProducts.length; i++) {
+                products.push(finalProducts[i]);
+            }
+        }
+    } catch (err) {
+        console.error('Failed to sync admin products:', err);
+    }
+
+    // 2. Proceed with normal UI rendering using the updated products array
     buildCategoryGrids();
     buildNavCategories();
     buildMegaMenu();
