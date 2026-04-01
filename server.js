@@ -221,7 +221,7 @@ app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().t
 // ADMIN DASHBOARD ROUTES
 // ==========================================
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'sandeep';
 
 // Login Route
 app.post('/api/admin/login', (req, res) => {

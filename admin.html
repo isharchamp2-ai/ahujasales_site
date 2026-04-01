@@ -622,8 +622,12 @@
             wrap.style.display  = 'block';
 
             const fallback = 'https://test.ahujasalesindia.com/Images/logo.png';
+            
+            // Limit to 100 items to prevent browser freeze
+            const displayList = list.slice(0, 100);
+            const hasMore = list.length > 100;
 
-            document.getElementById('prodsBody').innerHTML = list.map(p => {
+            let htmlString = displayList.map(p => {
                 const qty = p.quantity ?? '—';
                 const inStock = p.inStock || (typeof p.quantity === 'number' && p.quantity > 0);
                 const stockBadge = inStock
@@ -648,6 +652,12 @@
                     </td>
                 </tr>`;
             }).join('');
+            
+            if (hasMore) {
+                htmlString += `<tr><td colspan="7" style="text-align:center; padding: 15px; color: var(--text-muted);">Showing top 100 results. Use the search bar to find more specific products.</td></tr>`;
+            }
+            
+            document.getElementById('prodsBody').innerHTML = htmlString;
         }
 
         function openEditModal(productId) {
