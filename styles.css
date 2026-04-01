@@ -3,16 +3,16 @@
    ========================================================================== */
 
 :root {
-    --primary: #0d47a1;
-    --primary-dark: #002171;
-    --primary-light: #1565c0;
-    --accent: #e65100;
-    --accent-light: #ff8f00;
-    --accent-hover: #bf360c;
+    --primary: #800000;
+    --primary-dark: #4d0000;
+    --primary-light: #a32626;
+    --accent: #b30000;
+    --accent-light: #db4d4d;
+    --accent-hover: #8a0000;
     --text: #1a2332;
     --text-muted: #64748b;
     --text-white: #ffffff;
-    --bg: #f1f5f9;
+    --bg: #faf5f5;
     --bg-white: #ffffff;
     --border: #e2e8f0;
     --border-dark: #cbd5e1;
@@ -106,7 +106,7 @@ img{max-width:100%;display:block}
     background: var(--accent-hover);
     border-color: var(--accent-hover);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(230,81,0,.3);
+    box-shadow: 0 6px 20px rgba(179,0,0,.3);
 }
 .btn-outline {
     background: transparent;
@@ -338,7 +338,7 @@ img{max-width:100%;display:block}
 
 .modal-icon {
     width: 70px; height: 70px;
-    background: rgba(13,71,161,.08);
+    background: rgba(128,0,0,.08);
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 1.8rem;
@@ -510,7 +510,7 @@ img{max-width:100%;display:block}
 .cd-form-group textarea:focus {
     border-color: var(--primary);
     background: #fff;
-    box-shadow: 0 0 0 3px rgba(13,71,161,.08);
+    box-shadow: 0 0 0 3px rgba(128,0,0,.08);
 }
 .cd-form-group textarea {
     resize: vertical;
@@ -889,7 +889,7 @@ img{max-width:100%;display:block}
 .cat-count{
     font-size:.75rem;font-weight:600;
     color:var(--accent);
-    background:rgba(230,81,0,.08);
+    background:rgba(179,0,0,.08);
     padding:3px 10px;border-radius:20px;
     display:inline-block;
 }
@@ -1127,7 +1127,7 @@ img{max-width:100%;display:block}
 }
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,71,161,.08)}
+.form-group textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(128,0,0,.08)}
 .form-group textarea{resize:vertical}
 
 .contact-info-box{
@@ -1143,7 +1143,7 @@ img{max-width:100%;display:block}
 .cib-item:last-child{border:none}
 .cib-icon{
     width:44px;height:44px;
-    background:rgba(13,71,161,.08);
+    background:rgba(128,0,0,.08);
     border-radius:10px;
     display:flex;align-items:center;justify-content:center;
     color:var(--primary);font-size:1rem;flex-shrink:0;
