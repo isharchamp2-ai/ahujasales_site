@@ -651,7 +651,7 @@
         }
 
         function openEditModal(productId) {
-            const p = allAdminProducts.find(x => x.id === productId);
+            const p = allAdminProducts.find(x => String(x.id) === String(productId));
             if (!p) return;
             document.getElementById('editProdId').value    = p.id;
             document.getElementById('editProdName').value  = p.name || '';
@@ -709,7 +709,7 @@
                 const data = await res.json();
                 if (data.success) {
                     // Update local state
-                    const idx = allAdminProducts.findIndex(p => p.id === id);
+                    const idx = allAdminProducts.findIndex(p => String(p.id) === String(id));
                     if (idx !== -1) allAdminProducts[idx] = data.item;
                     renderProductsTable();
                     showToast('Product updated successfully!');
@@ -740,7 +740,7 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    allAdminProducts = allAdminProducts.filter(p => p.id !== productId);
+                    allAdminProducts = allAdminProducts.filter(p => String(p.id) !== String(productId));
                     renderProductsTable();
                     showToast('Product deleted.');
                 } else {
