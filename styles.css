@@ -546,8 +546,8 @@ img{max-width:100%;display:block}
 .otp-verify-row {
     margin-bottom: 14px;
     padding: 12px 14px;
-    background: #f0f7ff;
-    border: 1.5px solid #bfdbfe;
+    background: #fcf8f8;
+    border: 1.5px solid #ecd1d1;
     border-radius: var(--radius);
 }
 .otp-verify-inputs {
@@ -598,7 +598,7 @@ img{max-width:100%;display:block}
 /* Top Bar */
 .top-bar {
     background: var(--primary-dark);
-    color: #c5d5f0;
+    color: #ffffff;
     padding: 7px 0;
     font-size: .8rem;
 }
@@ -608,7 +608,7 @@ img{max-width:100%;display:block}
 .top-contact i,.top-right i{color:var(--accent-light)}
 .top-right{display:flex;gap:15px;align-items:center}
 .top-right a{
-    color:#c5d5f0;padding:3px 10px;border:1px solid rgba(255,255,255,.2);
+    color:#ffffff;padding:3px 10px;border:1px solid rgba(255,255,255,.2);
     border-radius:20px;font-size:.75rem;
     display:flex;align-items:center;gap:5px;
 }
@@ -788,7 +788,7 @@ img{max-width:100%;display:block}
    HERO
    ============================================================ */
 .hero{
-    background:linear-gradient(125deg,var(--primary-dark) 0%,#1565c0 50%,#283593 100%);
+    background:linear-gradient(125deg,var(--primary-dark) 0%,#a32626 50%,#660000 100%);
     color:#fff;
     padding:50px 0 40px;
     position:relative;
@@ -1160,7 +1160,7 @@ img{max-width:100%;display:block}
 /* ============================================================
    FOOTER
    ============================================================ */
-.footer{background:#0d1b3e;color:#94a3b8;padding-top:65px}
+.footer{background:#330000;color:#94a3b8;padding-top:65px}
 .footer-grid{
     display:grid;
     grid-template-columns:1.5fr 1fr 1fr 1.2fr;
@@ -1220,7 +1220,7 @@ img{max-width:100%;display:block}
 .payment-methods i:hover{color:#94a3b8}
 
 .footer-bottom{
-    background:#040d1e;
+    background:#1a0000;
     padding:18px 0;
     border-top:1px solid rgba(255,255,255,.06);
 }
