@@ -656,5 +656,63 @@
 </button>
 
 <script src="script.js"></script>
+
+<!-- ===== 50 YEARS CELEBRATION POPUP ===== -->
+<div class="modal-overlay" id="anniversaryOverlay" onclick="closeAnniversary()">
+    <div class="modal anniversary-card" id="anniversaryModal" onclick="event.stopPropagation()">
+        <button class="modal-close" onclick="closeAnniversary()"><i class="fas fa-times"></i></button>
+        <div class="anni-content">
+            <h2 class="anni-title">Celebrating</h2>
+            <div class="anni-years">50 Years</div>
+            <h3 class="anni-subtitle">of Completeness</h3>
+            <p>Thank you for trusting Ahuja Sales (India) as your industrial refrigeration partner.</p>
+            <button class="btn btn-primary" onclick="closeAnniversary()" style="margin-top:15px; border-radius:30px; font-weight:800; letter-spacing:1px; padding:12px 30px;">
+                Continue Browsing
+            </button>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<script>
+    function closeAnniversary() {
+        document.getElementById('anniversaryOverlay').classList.remove('active');
+    }
+    window.addEventListener('load', () => {
+        // Show modal after 1.5 seconds
+        setTimeout(() => {
+            const overlay = document.getElementById('anniversaryOverlay');
+            if (overlay) {
+                overlay.classList.add('active');
+                // Trigger Confetti
+                if (typeof confetti === 'function') {
+                    const duration = 3500;
+                    const end = Date.now() + duration;
+
+                    (function frame() {
+                        confetti({
+                            particleCount: 6,
+                            angle: 60,
+                            spread: 55,
+                            origin: { x: 0 },
+                            colors: ['#800000', '#b30000', '#ffd700', '#ffffff']
+                        });
+                        confetti({
+                            particleCount: 6,
+                            angle: 120,
+                            spread: 55,
+                            origin: { x: 1 },
+                            colors: ['#800000', '#b30000', '#ffd700', '#ffffff']
+                        });
+
+                        if (Date.now() < end) {
+                            requestAnimationFrame(frame);
+                        }
+                    }());
+                }
+            }
+        }, 1500);
+    });
+</script>
 </body>
 </html>
